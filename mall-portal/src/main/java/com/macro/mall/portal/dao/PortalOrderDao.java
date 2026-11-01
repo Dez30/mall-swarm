@@ -43,6 +43,14 @@ public interface PortalOrderDao {
     int updateOrderStatus(@Param("ids") List<Long> ids,@Param("status") Integer status);
 
     /**
+     * 将待付款订单标记为已支付，仅当订单仍为待付款时才更新成功
+     * @param orderId 订单id
+     * @param payType 支付方式
+     * @return 影响行数，0表示订单状态已变更（已取消或已支付），防止与取消竞态及重复回调重复扣减库存
+     */
+    int markOrderPaid(@Param("orderId") Long orderId, @Param("payType") Integer payType);
+
+    /**
      * 解除取消订单的库存锁定，仅当锁定库存足够时执行，防止减成负数
      * @param skuId    商品SKU的id
      * @param quantity 购买数量

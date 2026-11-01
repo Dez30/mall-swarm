@@ -2,10 +2,12 @@ package com.macro.mall.portal.controller;
 
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
+import com.macro.mall.common.exception.Asserts;
 import com.macro.mall.portal.domain.ConfirmOrderResult;
 import com.macro.mall.portal.domain.OmsOrderDetail;
 import com.macro.mall.portal.domain.OrderParam;
 import com.macro.mall.portal.service.OmsPortalOrderService;
+import com.macro.mall.portal.service.UmsMemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -28,6 +30,8 @@ import java.util.Map;
 public class OmsPortalOrderController {
     @Autowired
     private OmsPortalOrderService portalOrderService;
+    @Autowired
+    private UmsMemberService memberService;
 
     @Operation(summary = "根据购物车信息生成确认单信息")
     @RequestMapping(value = "/generateConfirmOrder", method = RequestMethod.POST)
@@ -49,6 +53,11 @@ public class OmsPortalOrderController {
     @RequestMapping(value = "/paySuccess", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult paySuccess(@RequestParam Long orderId,@RequestParam Integer payType) {
+        //模拟支付接口需校验订单归属，防止篡改他人订单状态
+        OmsOrderDetail orderDetail = portalOrderService.detail(orderId);
+        if (orderDetail == null || !memberService.getCurrentMember().getId().equals(orderDetail.getMemberId())) {
+            Asserts.fail("订单不存在或不属于当前用户");
+        }
         Integer count = portalOrderService.paySuccess(orderId,payType);
         return CommonResult.success(count, "支付成功");
     }

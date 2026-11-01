@@ -69,6 +69,15 @@
         </foreach>
         and status = 0
     </update>
+
+    <update id="markOrderPaid">
+        update oms_order
+        set status = 1,
+            payment_time = NOW(),
+            pay_type = #{payType}
+        where id = #{orderId}
+          and status = 0
+    </update>
     <update id="releaseSkuStockLock">
         UPDATE pms_sku_stock
         SET lock_stock = lock_stock - #{quantity}

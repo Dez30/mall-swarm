@@ -54,7 +54,11 @@
     <update id="updateUseStatus">
         UPDATE sms_coupon_history
         SET use_status = #{toStatus},
-            use_time = NOW()
+            use_time =
+        <choose>
+            <when test="toStatus == 1">NOW()</when>
+            <otherwise>NULL</otherwise>
+        </choose>
         WHERE member_id = #{memberId}
           AND coupon_id = #{couponId}
           AND use_status = #{fromStatus}

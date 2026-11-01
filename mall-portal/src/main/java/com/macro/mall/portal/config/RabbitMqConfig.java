@@ -1,7 +1,11 @@
 package com.macro.mall.portal.config;
 
 import com.macro.mall.portal.domain.QueueEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,6 +15,27 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class RabbitMqConfig {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RabbitMqConfig.class);
+
+    /**
+     * 配置RabbitTemplate并注册发布确认与退回回调，
+     * 订单取消消息未到达broker或被退回时记录错误日志，由超时取消定时任务兜底
+     */
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMandatory(true);
+        rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+            if (!ack) {
+                LOGGER.error("订单取消消息发布失败，未到达broker，correlationData:{}，cause:{}", correlationData, cause);
+            }
+        });
+        rabbitTemplate.setReturnsCallback(returned ->
+                LOGGER.error("订单取消消息被退回，message:{}，replyCode:{}，replyText:{}",
+                        returned.getMessage(), returned.getReplyCode(), returned.getReplyText()));
+        return rabbitTemplate;
+    }
 
     /**
      * 订单消息实际消费队列所绑定的交换机
