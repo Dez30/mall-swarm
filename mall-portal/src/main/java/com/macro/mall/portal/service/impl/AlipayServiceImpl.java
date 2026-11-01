@@ -10,6 +10,8 @@ import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.request.AlipayTradeWapPayRequest;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.macro.mall.mapper.OmsOrderMapper;
+import com.macro.mall.model.OmsOrder;
+import com.macro.mall.model.OmsOrderExample;
 import com.macro.mall.portal.config.AlipayConfig;
 import com.macro.mall.portal.domain.AliPayParam;
 import com.macro.mall.portal.service.AlipayService;
@@ -17,7 +19,10 @@ import com.macro.mall.portal.service.OmsPortalOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -82,9 +87,19 @@ public class AlipayServiceImpl implements AlipayService {
         if (signVerified) {
             String tradeStatus = params.get("trade_status");
             if("TRADE_SUCCESS".equals(tradeStatus)){
+                String outTradeNo = params.get("out_trade_no");
+                //校验回调金额与订单应付金额一致，防止异常回调造成资损
+                OmsOrderExample orderExample = new OmsOrderExample();
+                orderExample.createCriteria().andOrderSnEqualTo(outTradeNo);
+                List<OmsOrder> orderList = orderMapper.selectByExample(orderExample);
+                String totalAmount = params.get("total_amount");
+                if(CollectionUtils.isEmpty(orderList) || StrUtil.isEmpty(totalAmount)
+                        || new BigDecimal(totalAmount).compareTo(orderList.get(0).getPayAmount()) != 0){
+                    log.warn("支付宝回调金额与订单金额不一致，outTradeNo:{}", outTradeNo);
+                    return "failure";
+                }
                 result = "success";
                 log.info("notify方法被调用了，tradeStatus:{}",tradeStatus);
-                String outTradeNo = params.get("out_trade_no");
                 portalOrderService.paySuccessByOrderSn(outTradeNo,1);
             }else{
                 log.warn("订单未支付成功，trade_status:{}",tradeStatus);

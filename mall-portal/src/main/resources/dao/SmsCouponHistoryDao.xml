@@ -50,4 +50,14 @@
             AND NOW() > c.end_time
         </if>
     </select>
+
+    <update id="updateUseStatus">
+        UPDATE sms_coupon_history
+        SET use_status = #{toStatus},
+            use_time = NOW()
+        WHERE member_id = #{memberId}
+          AND coupon_id = #{couponId}
+          AND use_status = #{fromStatus}
+        LIMIT 1
+    </update>
 </mapper>

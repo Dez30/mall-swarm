@@ -1,6 +1,5 @@
 package com.macro.mall.portal.dao;
 
-import com.macro.mall.model.OmsOrderItem;
 import com.macro.mall.portal.domain.OmsOrderDetail;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,9 +16,20 @@ public interface PortalOrderDao {
     OmsOrderDetail getDetail(@Param("orderId") Long orderId);
 
     /**
-     * 修改 pms_sku_stock表的锁定库存及真实库存
+     * 原子锁定库存：仅当可用库存(stock - lock_stock) >= 购买数量时锁定成功
+     * @param skuId    商品SKU的id
+     * @param quantity 购买数量
+     * @return 影响行数，0表示库存不足
      */
-    int updateSkuStock(@Param("itemList") List<OmsOrderItem> orderItemList);
+    int lockSkuStock(@Param("skuId") Long skuId, @Param("quantity") Integer quantity);
+
+    /**
+     * 支付成功扣减真实库存：stock与lock_stock同时扣减，仅当锁定库存足够时执行
+     * @param skuId    商品SKU的id
+     * @param quantity 购买数量
+     * @return 影响行数，0表示锁定库存不足（状态异常）
+     */
+    int deductSkuStock(@Param("skuId") Long skuId, @Param("quantity") Integer quantity);
 
     /**
      * 获取超时订单
@@ -33,8 +43,11 @@ public interface PortalOrderDao {
     int updateOrderStatus(@Param("ids") List<Long> ids,@Param("status") Integer status);
 
     /**
-     * 解除取消订单的库存锁定
+     * 解除取消订单的库存锁定，仅当锁定库存足够时执行，防止减成负数
+     * @param skuId    商品SKU的id
+     * @param quantity 购买数量
+     * @return 影响行数，0表示无锁定库存可释放
      */
-    int releaseSkuStockLock(@Param("itemList") List<OmsOrderItem> orderItemList);
+    int releaseSkuStockLock(@Param("skuId") Long skuId, @Param("quantity") Integer quantity);
 
 }

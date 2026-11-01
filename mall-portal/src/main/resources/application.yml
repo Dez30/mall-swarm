@@ -38,6 +38,8 @@ spring:
     virtual-host: /mall
     username: mall
     password: mall
+    publisher-confirm-type: correlated # 开启消息发布确认，防止消息丢失导致库存永久锁定
+    publisher-returns: true
 mybatis:
   mapper-locations:
     - classpath:dao/*.xml
