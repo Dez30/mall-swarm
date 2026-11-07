@@ -16,7 +16,7 @@ public interface PmsSkuStockDao {
     int insertList(@Param("list")List<PmsSkuStock> skuStockList);
 
     /**
-     * 批量插入或替换操作
+     * 批量插入或更新操作，更新时不触碰lock_stock和promotion_price，防止后台编辑商品覆盖下单锁定数据
      */
-    int replaceList(@Param("list")List<PmsSkuStock> skuStockList);
+    int upsertList(@Param("list")List<PmsSkuStock> skuStockList);
 }

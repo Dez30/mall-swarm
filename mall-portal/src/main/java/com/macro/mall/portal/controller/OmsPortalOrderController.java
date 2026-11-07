@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,11 @@ public class OmsPortalOrderController {
     private OmsPortalOrderService portalOrderService;
     @Autowired
     private UmsMemberService memberService;
+    /**
+     * 模拟支付开关，默认关闭，仅在本地/测试环境通过配置开启
+     */
+    @Value("${mall.order.mock-pay-enabled:false}")
+    private Boolean mockPayEnabled;
 
     @Operation(summary = "根据购物车信息生成确认单信息")
     @RequestMapping(value = "/generateConfirmOrder", method = RequestMethod.POST)
@@ -53,6 +59,10 @@ public class OmsPortalOrderController {
     @RequestMapping(value = "/paySuccess", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult paySuccess(@RequestParam Long orderId,@RequestParam Integer payType) {
+        //模拟支付会把订单直接标记为已支付，生产环境必须保持关闭，防止用户零支付成交造成资损
+        if (!Boolean.TRUE.equals(mockPayEnabled)) {
+            Asserts.fail("模拟支付接口未开启");
+        }
         //模拟支付接口需校验订单归属，防止篡改他人订单状态
         OmsOrderDetail orderDetail = portalOrderService.detail(orderId);
         if (orderDetail == null || !memberService.getCurrentMember().getId().equals(orderDetail.getMemberId())) {

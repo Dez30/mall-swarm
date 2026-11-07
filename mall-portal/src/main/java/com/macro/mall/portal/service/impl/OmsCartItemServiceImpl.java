@@ -1,6 +1,7 @@
 package com.macro.mall.portal.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.macro.mall.common.exception.Asserts;
 import com.macro.mall.mapper.OmsCartItemMapper;
 import com.macro.mall.model.OmsCartItem;
 import com.macro.mall.model.OmsCartItemExample;
@@ -37,6 +38,9 @@ public class OmsCartItemServiceImpl implements OmsCartItemService {
 
     @Override
     public int add(OmsCartItem cartItem) {
+        if (cartItem.getQuantity() == null || cartItem.getQuantity() <= 0) {
+            Asserts.fail("商品数量必须大于0");
+        }
         int count;
         UmsMember currentMember =memberService.getCurrentMember();
         cartItem.setMemberId(currentMember.getId());
@@ -93,6 +97,9 @@ public class OmsCartItemServiceImpl implements OmsCartItemService {
 
     @Override
     public int updateQuantity(Long id, Long memberId, Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            Asserts.fail("商品数量必须大于0");
+        }
         OmsCartItem cartItem = new OmsCartItem();
         cartItem.setQuantity(quantity);
         OmsCartItemExample example = new OmsCartItemExample();

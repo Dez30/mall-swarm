@@ -71,6 +71,9 @@ rabbitmq:
   queue:
     name:
       cancelOrder: cancelOrderQueue
+mall:
+  order:
+    mock-pay-enabled: false # 模拟支付接口开关，默认关闭防止零支付成交，仅本地联调时开启
 springdoc:
   swagger-ui:
     # 修改Swagger UI路径

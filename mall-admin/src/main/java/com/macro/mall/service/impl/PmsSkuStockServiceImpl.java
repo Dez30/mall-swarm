@@ -34,6 +34,6 @@ public class PmsSkuStockServiceImpl implements PmsSkuStockService {
 
     @Override
     public int update(Long pid, List<PmsSkuStock> skuStockList) {
-        return skuStockDao.replaceList(skuStockList);
+        return skuStockDao.upsertList(skuStockList);
     }
 }

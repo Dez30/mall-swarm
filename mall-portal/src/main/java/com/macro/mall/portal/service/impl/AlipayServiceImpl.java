@@ -2,6 +2,7 @@ package com.macro.mall.portal.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.macro.mall.common.exception.Asserts;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
@@ -53,14 +54,16 @@ public class AlipayServiceImpl implements AlipayService {
             //同步跳转地址
             request.setReturnUrl(alipayConfig.getReturnUrl());
         }
+        //金额必须以服务端订单为准，防止客户端篡改支付金额造成资损
+        OmsOrder order = getPayableOrder(aliPayParam.getOutTradeNo());
         //******必传参数******
         JSONObject bizContent = new JSONObject();
         //商户订单号，商家自定义，保持唯一性
-        bizContent.put("out_trade_no", aliPayParam.getOutTradeNo());
-        //支付金额，最小值0.01元
-        bizContent.put("total_amount", aliPayParam.getTotalAmount());
+        bizContent.put("out_trade_no", order.getOrderSn());
+        //支付金额取自数据库中的订单应付金额，最小值0.01元
+        bizContent.put("total_amount", order.getPayAmount());
         //订单标题，不可使用特殊符号
-        bizContent.put("subject", aliPayParam.getSubject());
+        bizContent.put("subject", StrUtil.isNotEmpty(aliPayParam.getSubject()) ? aliPayParam.getSubject() : "商城订单" + order.getOrderSn());
         //电脑网站支付场景固定传值FAST_INSTANT_TRADE_PAY
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
         request.setBizContent(bizContent.toString());
@@ -71,6 +74,26 @@ public class AlipayServiceImpl implements AlipayService {
             e.printStackTrace();
         }
         return formHtml;
+    }
+
+    /**
+     * 校验并获取可支付的订单：订单必须存在且处于待付款状态
+     */
+    private OmsOrder getPayableOrder(String outTradeNo) {
+        if (StrUtil.isEmpty(outTradeNo)) {
+            Asserts.fail("订单号不能为空");
+        }
+        OmsOrderExample orderExample = new OmsOrderExample();
+        orderExample.createCriteria().andOrderSnEqualTo(outTradeNo);
+        List<OmsOrder> orderList = orderMapper.selectByExample(orderExample);
+        if (CollectionUtils.isEmpty(orderList)) {
+            Asserts.fail("订单不存在");
+        }
+        OmsOrder order = orderList.get(0);
+        if (order.getStatus() != 0) {
+            Asserts.fail("订单状态异常，无法发起支付");
+        }
+        return order;
     }
 
     @Override
@@ -155,14 +178,16 @@ public class AlipayServiceImpl implements AlipayService {
             //同步跳转地址
             request.setReturnUrl(alipayConfig.getReturnUrl());
         }
+        //金额必须以服务端订单为准，防止客户端篡改支付金额造成资损
+        OmsOrder order = getPayableOrder(aliPayParam.getOutTradeNo());
         //******必传参数******
         JSONObject bizContent = new JSONObject();
         //商户订单号，商家自定义，保持唯一性
-        bizContent.put("out_trade_no", aliPayParam.getOutTradeNo());
-        //支付金额，最小值0.01元
-        bizContent.put("total_amount", aliPayParam.getTotalAmount());
+        bizContent.put("out_trade_no", order.getOrderSn());
+        //支付金额取自数据库中的订单应付金额，最小值0.01元
+        bizContent.put("total_amount", order.getPayAmount());
         //订单标题，不可使用特殊符号
-        bizContent.put("subject", aliPayParam.getSubject());
+        bizContent.put("subject", StrUtil.isNotEmpty(aliPayParam.getSubject()) ? aliPayParam.getSubject() : "商城订单" + order.getOrderSn());
         //手机网站支付默认传值FAST_INSTANT_TRADE_PAY
         bizContent.put("product_code", "QUICK_WAP_WAY");
         request.setBizContent(bizContent.toString());

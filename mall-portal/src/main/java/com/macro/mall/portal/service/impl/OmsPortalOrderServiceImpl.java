@@ -136,6 +136,10 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         UmsMember currentMember = memberService.getCurrentMember();
         List<CartPromotionItem> cartPromotionItemList = cartItemService.listPromotion(currentMember.getId(), orderParam.getCartIds());
         for (CartPromotionItem cartPromotionItem : cartPromotionItemList) {
+            //防御历史脏数据：数量为0或负数会拉低订单金额，必须拒绝下单
+            if (cartPromotionItem.getQuantity() == null || cartPromotionItem.getQuantity() <= 0) {
+                Asserts.fail("购物车商品数量异常，请删除该商品后重试");
+            }
             //生成下单商品信息
             OmsOrderItem orderItem = new OmsOrderItem();
             orderItem.setProductId(cartPromotionItem.getProductId());
