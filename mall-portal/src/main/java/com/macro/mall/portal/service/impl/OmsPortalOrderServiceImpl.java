@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
@@ -124,6 +125,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> generateOrder(OrderParam orderParam) {
         List<OmsOrderItem> orderItemList = new ArrayList<>();
         //校验收货地址
@@ -284,6 +286,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer paySuccess(Long orderId, Integer payType) {
         //仅当订单仍为待付款时才更新状态，防止与取消竞态及重复回调造成重复扣减库存
         int count = portalOrderDao.markOrderPaid(orderId, payType);
@@ -306,6 +309,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer cancelTimeOutOrder() {
         Integer count=0;
         OmsOrderSetting orderSetting = getOrderSetting();
@@ -340,6 +344,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Long orderId) {
         //仅当订单仍为待付款时才取消，防止与支付成功竞态把已支付订单改回已关闭
         int cancelCount = portalOrderDao.updateOrderStatus(Collections.singletonList(orderId), 4);
@@ -484,6 +489,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void paySuccessByOrderSn(String orderSn, Integer payType) {
         OmsOrderExample example =  new OmsOrderExample();
         example.createCriteria()
