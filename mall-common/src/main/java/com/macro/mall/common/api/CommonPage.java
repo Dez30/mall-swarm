@@ -1,6 +1,6 @@
 package com.macro.mall.common.api;
 
-import com.github.pagehelper.PageInfo;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -17,16 +17,15 @@ public class CommonPage<T> {
     private List<T> list;
 
     /**
-     * 将PageHelper分页后的list转为分页信息
+     * 将MyBatis-Plus分页结果转为分页信息
      */
-    public static <T> CommonPage<T> restPage(List<T> list) {
+    public static <T> CommonPage<T> restPage(IPage<T> page) {
         CommonPage<T> result = new CommonPage<T>();
-        PageInfo<T> pageInfo = new PageInfo<T>(list);
-        result.setTotalPage(pageInfo.getPages());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setTotal(pageInfo.getTotal());
-        result.setList(pageInfo.getList());
+        result.setPageNum((int) page.getCurrent());
+        result.setPageSize((int) page.getSize());
+        result.setTotalPage((int) page.getPages());
+        result.setTotal(page.getTotal());
+        result.setList(page.getRecords());
         return result;
     }
 
