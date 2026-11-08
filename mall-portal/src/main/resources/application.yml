@@ -40,10 +40,11 @@ spring:
     password: mall
     publisher-confirm-type: correlated # 开启消息发布确认，防止消息丢失导致库存永久锁定
     publisher-returns: true
-mybatis:
+mybatis-plus:
   mapper-locations:
     - classpath:dao/*.xml
-    - classpath*:com/**/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 management:
   endpoints:
     web:

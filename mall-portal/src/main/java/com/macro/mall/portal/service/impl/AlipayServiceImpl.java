@@ -2,6 +2,7 @@ package com.macro.mall.portal.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.macro.mall.common.exception.Asserts;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
@@ -12,7 +13,6 @@ import com.alipay.api.request.AlipayTradeWapPayRequest;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.macro.mall.mapper.OmsOrderMapper;
 import com.macro.mall.model.OmsOrder;
-import com.macro.mall.model.OmsOrderExample;
 import com.macro.mall.portal.config.AlipayConfig;
 import com.macro.mall.portal.domain.AliPayParam;
 import com.macro.mall.portal.service.AlipayService;
@@ -83,9 +83,8 @@ public class AlipayServiceImpl implements AlipayService {
         if (StrUtil.isEmpty(outTradeNo)) {
             Asserts.fail("订单号不能为空");
         }
-        OmsOrderExample orderExample = new OmsOrderExample();
-        orderExample.createCriteria().andOrderSnEqualTo(outTradeNo);
-        List<OmsOrder> orderList = orderMapper.selectByExample(orderExample);
+        List<OmsOrder> orderList = orderMapper.selectList(new LambdaQueryWrapper<OmsOrder>()
+                .eq(OmsOrder::getOrderSn, outTradeNo));
         if (CollectionUtils.isEmpty(orderList)) {
             Asserts.fail("订单不存在");
         }
@@ -112,9 +111,8 @@ public class AlipayServiceImpl implements AlipayService {
             if("TRADE_SUCCESS".equals(tradeStatus)){
                 String outTradeNo = params.get("out_trade_no");
                 //校验回调金额与订单应付金额一致，防止异常回调造成资损
-                OmsOrderExample orderExample = new OmsOrderExample();
-                orderExample.createCriteria().andOrderSnEqualTo(outTradeNo);
-                List<OmsOrder> orderList = orderMapper.selectByExample(orderExample);
+                List<OmsOrder> orderList = orderMapper.selectList(new LambdaQueryWrapper<OmsOrder>()
+                        .eq(OmsOrder::getOrderSn, outTradeNo));
                 String totalAmount = params.get("total_amount");
                 if(CollectionUtils.isEmpty(orderList) || StrUtil.isEmpty(totalAmount)
                         || new BigDecimal(totalAmount).compareTo(orderList.get(0).getPayAmount()) != 0){

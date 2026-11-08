@@ -2,12 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.macro.mall.portal.dao.SmsCouponHistoryDao">
     <resultMap id="couponHistoryDetailMap" type="com.macro.mall.portal.domain.SmsCouponHistoryDetail"
-               extends="com.macro.mall.mapper.SmsCouponHistoryMapper.BaseResultMap">
-        <association property="coupon" resultMap="com.macro.mall.mapper.SmsCouponMapper.BaseResultMap" columnPrefix="c_">
+               extends="SmsCouponHistoryBaseResultMap">
+        <association property="coupon" resultMap="SmsCouponBaseResultMap" columnPrefix="c_">
         </association>
-        <collection property="productRelationList" columnPrefix="cpr_" resultMap="com.macro.mall.mapper.SmsCouponProductRelationMapper.BaseResultMap">
+        <collection property="productRelationList" columnPrefix="cpr_" resultMap="SmsCouponProductRelationBaseResultMap">
         </collection>
-        <collection property="categoryRelationList" columnPrefix="cpcr_" resultMap="com.macro.mall.mapper.SmsCouponProductCategoryRelationMapper.BaseResultMap">
+        <collection property="categoryRelationList" columnPrefix="cpcr_" resultMap="SmsCouponProductCategoryRelationBaseResultMap">
         </collection>
     </resultMap>
     <select id="getDetailList" resultMap="couponHistoryDetailMap">
@@ -34,7 +34,7 @@
         AND ch.use_status = 0
     </select>
 
-    <select id="getCouponList" resultMap="com.macro.mall.mapper.SmsCouponMapper.BaseResultMap">
+    <select id="getCouponList" resultMap="SmsCouponBaseResultMap">
         SELECT
           c.*
         FROM
@@ -64,4 +64,51 @@
           AND use_status = #{fromStatus}
         LIMIT 1
     </update>
+<resultMap id="SmsCouponHistoryBaseResultMap" type="com.macro.mall.model.SmsCouponHistory">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="coupon_id" jdbcType="BIGINT" property="couponId" />
+    <result column="member_id" jdbcType="BIGINT" property="memberId" />
+    <result column="coupon_code" jdbcType="VARCHAR" property="couponCode" />
+    <result column="member_nickname" jdbcType="VARCHAR" property="memberNickname" />
+    <result column="get_type" jdbcType="INTEGER" property="getType" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="use_status" jdbcType="INTEGER" property="useStatus" />
+    <result column="use_time" jdbcType="TIMESTAMP" property="useTime" />
+    <result column="order_id" jdbcType="BIGINT" property="orderId" />
+    <result column="order_sn" jdbcType="VARCHAR" property="orderSn" />
+  </resultMap>
+<resultMap id="SmsCouponBaseResultMap" type="com.macro.mall.model.SmsCoupon">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="platform" jdbcType="INTEGER" property="platform" />
+    <result column="count" jdbcType="INTEGER" property="count" />
+    <result column="amount" jdbcType="DECIMAL" property="amount" />
+    <result column="per_limit" jdbcType="INTEGER" property="perLimit" />
+    <result column="min_point" jdbcType="DECIMAL" property="minPoint" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="use_type" jdbcType="INTEGER" property="useType" />
+    <result column="note" jdbcType="VARCHAR" property="note" />
+    <result column="publish_count" jdbcType="INTEGER" property="publishCount" />
+    <result column="use_count" jdbcType="INTEGER" property="useCount" />
+    <result column="receive_count" jdbcType="INTEGER" property="receiveCount" />
+    <result column="enable_time" jdbcType="TIMESTAMP" property="enableTime" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="member_level" jdbcType="INTEGER" property="memberLevel" />
+  </resultMap>
+<resultMap id="SmsCouponProductRelationBaseResultMap" type="com.macro.mall.model.SmsCouponProductRelation">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="coupon_id" jdbcType="BIGINT" property="couponId" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="product_name" jdbcType="VARCHAR" property="productName" />
+    <result column="product_sn" jdbcType="VARCHAR" property="productSn" />
+  </resultMap>
+<resultMap id="SmsCouponProductCategoryRelationBaseResultMap" type="com.macro.mall.model.SmsCouponProductCategoryRelation">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="coupon_id" jdbcType="BIGINT" property="couponId" />
+    <result column="product_category_id" jdbcType="BIGINT" property="productCategoryId" />
+    <result column="product_category_name" jdbcType="VARCHAR" property="productCategoryName" />
+    <result column="parent_category_name" jdbcType="VARCHAR" property="parentCategoryName" />
+  </resultMap>
 </mapper>
