@@ -1,5 +1,6 @@
 package com.macro.mall.demo.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.demo.dto.PmsBrandDto;
@@ -85,8 +86,9 @@ public class DemoController {
     @ResponseBody
     public CommonResult<CommonPage<PmsBrand>> listBrand(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
                                                         @RequestParam(value = "pageSize", defaultValue = "3") Integer pageSize) {
-        List<PmsBrand> brandList = demoService.listBrand(pageNum, pageSize);
-        return CommonResult.success(CommonPage.restPage(brandList));
+        Page<PmsBrand> brandPage = demoService.listBrand(pageNum, pageSize);
+        CommonPage<PmsBrand> resultPage = CommonPage.restPage(brandPage);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "根据编号查询品牌信息")

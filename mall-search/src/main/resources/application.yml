@@ -27,10 +27,9 @@ spring:
         enabled: true
   elasticsearch:
     uris: localhost:9200
-mybatis:
+mybatis-plus:
   mapper-locations:
     - classpath:dao/*.xml
-    - classpath*:com/**/mapper/*.xml
 management:
   endpoints:
     web:
