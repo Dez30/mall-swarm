@@ -1,30 +1,10 @@
 package com.macro.mall.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.macro.mall.model.PmsProductCategoryAttributeRelation;
-import com.macro.mall.model.PmsProductCategoryAttributeRelationExample;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
 
-public interface PmsProductCategoryAttributeRelationMapper {
-    long countByExample(PmsProductCategoryAttributeRelationExample example);
-
-    int deleteByExample(PmsProductCategoryAttributeRelationExample example);
-
-    int deleteByPrimaryKey(Long id);
-
-    int insert(PmsProductCategoryAttributeRelation row);
-
-    int insertSelective(PmsProductCategoryAttributeRelation row);
-
-    List<PmsProductCategoryAttributeRelation> selectByExample(PmsProductCategoryAttributeRelationExample example);
-
-    PmsProductCategoryAttributeRelation selectByPrimaryKey(Long id);
-
-    int updateByExampleSelective(@Param("row") PmsProductCategoryAttributeRelation row, @Param("example") PmsProductCategoryAttributeRelationExample example);
-
-    int updateByExample(@Param("row") PmsProductCategoryAttributeRelation row, @Param("example") PmsProductCategoryAttributeRelationExample example);
-
-    int updateByPrimaryKeySelective(PmsProductCategoryAttributeRelation row);
-
-    int updateByPrimaryKey(PmsProductCategoryAttributeRelation row);
+/**
+ * MyBatis-Plus BaseMapper，单表CRUD与条件查询均通过MyBatis-Plus方法完成。
+ */
+public interface PmsProductCategoryAttributeRelationMapper extends BaseMapper<PmsProductCategoryAttributeRelation> {
 }

@@ -1,12 +1,17 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
+@TableName("oms_order")
 public class OmsOrder implements Serializable {
     @Schema(title = "订单id")
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long memberId;

@@ -1,9 +1,15 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 
+@TableName("sms_home_new_product")
 public class SmsHomeNewProduct implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long productId;

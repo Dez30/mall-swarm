@@ -1,9 +1,15 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 
+@TableName("ums_integration_consume_setting")
 public class UmsIntegrationConsumeSetting implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @Schema(title = "每一元需要抵扣的积分数量")

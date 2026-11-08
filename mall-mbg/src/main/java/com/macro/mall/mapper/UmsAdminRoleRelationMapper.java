@@ -1,30 +1,10 @@
 package com.macro.mall.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.macro.mall.model.UmsAdminRoleRelation;
-import com.macro.mall.model.UmsAdminRoleRelationExample;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
 
-public interface UmsAdminRoleRelationMapper {
-    long countByExample(UmsAdminRoleRelationExample example);
-
-    int deleteByExample(UmsAdminRoleRelationExample example);
-
-    int deleteByPrimaryKey(Long id);
-
-    int insert(UmsAdminRoleRelation row);
-
-    int insertSelective(UmsAdminRoleRelation row);
-
-    List<UmsAdminRoleRelation> selectByExample(UmsAdminRoleRelationExample example);
-
-    UmsAdminRoleRelation selectByPrimaryKey(Long id);
-
-    int updateByExampleSelective(@Param("row") UmsAdminRoleRelation row, @Param("example") UmsAdminRoleRelationExample example);
-
-    int updateByExample(@Param("row") UmsAdminRoleRelation row, @Param("example") UmsAdminRoleRelationExample example);
-
-    int updateByPrimaryKeySelective(UmsAdminRoleRelation row);
-
-    int updateByPrimaryKey(UmsAdminRoleRelation row);
+/**
+ * MyBatis-Plus BaseMapper，单表CRUD与条件查询均通过MyBatis-Plus方法完成。
+ */
+public interface UmsAdminRoleRelationMapper extends BaseMapper<UmsAdminRoleRelation> {
 }

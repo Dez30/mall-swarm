@@ -1,9 +1,15 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 
+@TableName("cms_subject_product_relation")
 public class CmsSubjectProductRelation implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long subjectId;

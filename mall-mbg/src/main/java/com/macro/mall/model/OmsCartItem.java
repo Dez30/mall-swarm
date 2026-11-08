@@ -1,11 +1,16 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
+@TableName("oms_cart_item")
 public class OmsCartItem implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long productId;

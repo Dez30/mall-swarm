@@ -1,10 +1,16 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.Date;
 
+@TableName("cms_help")
 public class CmsHelp implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long categoryId;

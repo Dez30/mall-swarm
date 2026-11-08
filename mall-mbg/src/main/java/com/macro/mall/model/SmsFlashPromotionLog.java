@@ -1,10 +1,15 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.Date;
 
+@TableName("sms_flash_promotion_log")
 public class SmsFlashPromotionLog implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Integer id;
 
     private Integer memberId;

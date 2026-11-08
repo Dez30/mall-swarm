@@ -1,30 +1,10 @@
 package com.macro.mall.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.macro.mall.model.OmsCartItem;
-import com.macro.mall.model.OmsCartItemExample;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
 
-public interface OmsCartItemMapper {
-    long countByExample(OmsCartItemExample example);
-
-    int deleteByExample(OmsCartItemExample example);
-
-    int deleteByPrimaryKey(Long id);
-
-    int insert(OmsCartItem row);
-
-    int insertSelective(OmsCartItem row);
-
-    List<OmsCartItem> selectByExample(OmsCartItemExample example);
-
-    OmsCartItem selectByPrimaryKey(Long id);
-
-    int updateByExampleSelective(@Param("row") OmsCartItem row, @Param("example") OmsCartItemExample example);
-
-    int updateByExample(@Param("row") OmsCartItem row, @Param("example") OmsCartItemExample example);
-
-    int updateByPrimaryKeySelective(OmsCartItem row);
-
-    int updateByPrimaryKey(OmsCartItem row);
+/**
+ * MyBatis-Plus BaseMapper，单表CRUD与条件查询均通过MyBatis-Plus方法完成。
+ */
+public interface OmsCartItemMapper extends BaseMapper<OmsCartItem> {
 }

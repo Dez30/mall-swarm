@@ -1,10 +1,16 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+@TableName("ums_member_level")
 public class UmsMemberLevel implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private String name;

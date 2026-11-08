@@ -1,30 +1,10 @@
 package com.macro.mall.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.macro.mall.model.UmsAdminPermissionRelation;
-import com.macro.mall.model.UmsAdminPermissionRelationExample;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
 
-public interface UmsAdminPermissionRelationMapper {
-    long countByExample(UmsAdminPermissionRelationExample example);
-
-    int deleteByExample(UmsAdminPermissionRelationExample example);
-
-    int deleteByPrimaryKey(Long id);
-
-    int insert(UmsAdminPermissionRelation row);
-
-    int insertSelective(UmsAdminPermissionRelation row);
-
-    List<UmsAdminPermissionRelation> selectByExample(UmsAdminPermissionRelationExample example);
-
-    UmsAdminPermissionRelation selectByPrimaryKey(Long id);
-
-    int updateByExampleSelective(@Param("row") UmsAdminPermissionRelation row, @Param("example") UmsAdminPermissionRelationExample example);
-
-    int updateByExample(@Param("row") UmsAdminPermissionRelation row, @Param("example") UmsAdminPermissionRelationExample example);
-
-    int updateByPrimaryKeySelective(UmsAdminPermissionRelation row);
-
-    int updateByPrimaryKey(UmsAdminPermissionRelation row);
+/**
+ * MyBatis-Plus BaseMapper，单表CRUD与条件查询均通过MyBatis-Plus方法完成。
+ */
+public interface UmsAdminPermissionRelationMapper extends BaseMapper<UmsAdminPermissionRelation> {
 }

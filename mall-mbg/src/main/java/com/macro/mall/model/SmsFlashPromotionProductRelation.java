@@ -1,11 +1,17 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+@TableName("sms_flash_promotion_product_relation")
 public class SmsFlashPromotionProductRelation implements Serializable {
     @Schema(title = "编号")
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long flashPromotionId;

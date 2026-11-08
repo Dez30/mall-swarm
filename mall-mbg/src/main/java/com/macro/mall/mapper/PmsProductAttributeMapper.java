@@ -1,30 +1,10 @@
 package com.macro.mall.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.macro.mall.model.PmsProductAttribute;
-import com.macro.mall.model.PmsProductAttributeExample;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
 
-public interface PmsProductAttributeMapper {
-    long countByExample(PmsProductAttributeExample example);
-
-    int deleteByExample(PmsProductAttributeExample example);
-
-    int deleteByPrimaryKey(Long id);
-
-    int insert(PmsProductAttribute row);
-
-    int insertSelective(PmsProductAttribute row);
-
-    List<PmsProductAttribute> selectByExample(PmsProductAttributeExample example);
-
-    PmsProductAttribute selectByPrimaryKey(Long id);
-
-    int updateByExampleSelective(@Param("row") PmsProductAttribute row, @Param("example") PmsProductAttributeExample example);
-
-    int updateByExample(@Param("row") PmsProductAttribute row, @Param("example") PmsProductAttributeExample example);
-
-    int updateByPrimaryKeySelective(PmsProductAttribute row);
-
-    int updateByPrimaryKey(PmsProductAttribute row);
+/**
+ * MyBatis-Plus BaseMapper，单表CRUD与条件查询均通过MyBatis-Plus方法完成。
+ */
+public interface PmsProductAttributeMapper extends BaseMapper<PmsProductAttribute> {
 }

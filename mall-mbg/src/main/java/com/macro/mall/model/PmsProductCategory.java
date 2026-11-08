@@ -1,9 +1,15 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 
+@TableName("pms_product_category")
 public class PmsProductCategory implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @Schema(title = "上机分类的编号：0表示一级分类")

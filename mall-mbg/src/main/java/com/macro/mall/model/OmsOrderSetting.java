@@ -1,9 +1,15 @@
 package com.macro.mall.model;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 
+@TableName("oms_order_setting")
 public class OmsOrderSetting implements Serializable {
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @Schema(title = "秒杀订单超时关闭时间(分)")
