@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.hutool.core.collection.CollUtil;
 import com.macro.mall.common.api.CommonPage;
@@ -96,8 +97,9 @@ public class UmsAdminController {
     public CommonResult<CommonPage<UmsAdmin>> list(@RequestParam(value = "keyword", required = false) String keyword,
                                                    @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                    @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<UmsAdmin> adminList = adminService.list(keyword, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(adminList));
+        Page<UmsAdmin> adminList = adminService.list(keyword, pageSize, pageNum);
+        CommonPage<UmsAdmin> resultPage = CommonPage.restPage(adminList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "获取指定用户信息")

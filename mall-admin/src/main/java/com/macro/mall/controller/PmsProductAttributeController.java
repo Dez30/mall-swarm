@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.dto.PmsProductAttributeParam;
@@ -37,8 +38,9 @@ public class PmsProductAttributeController {
                                                                  @RequestParam(value = "type") Integer type,
                                                                  @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                                  @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<PmsProductAttribute> productAttributeList = productAttributeService.getList(cid, type, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(productAttributeList));
+        Page<PmsProductAttribute> productAttributeList = productAttributeService.getList(cid, type, pageSize, pageNum);
+        CommonPage<PmsProductAttribute> resultPage = CommonPage.restPage(productAttributeList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "添加商品属性信息")

@@ -4,6 +4,7 @@ import com.macro.mall.dto.*;
 import com.macro.mall.model.OmsOrder;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -14,7 +15,7 @@ public interface OmsOrderService {
     /**
      * 订单查询
      */
-    List<OmsOrder> list(OmsOrderQueryParam queryParam, Integer pageSize, Integer pageNum);
+    Page<OmsOrder> list(OmsOrderQueryParam queryParam, Integer pageSize, Integer pageNum);
 
     /**
      * 批量发货

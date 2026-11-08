@@ -1,9 +1,9 @@
 package com.macro.mall.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.macro.mall.dto.SmsFlashPromotionSessionDetail;
 import com.macro.mall.mapper.SmsFlashPromotionSessionMapper;
 import com.macro.mall.model.SmsFlashPromotionSession;
-import com.macro.mall.model.SmsFlashPromotionSessionExample;
 import com.macro.mall.service.SmsFlashPromotionProductRelationService;
 import com.macro.mall.service.SmsFlashPromotionSessionService;
 import org.springframework.beans.BeanUtils;
@@ -34,7 +34,7 @@ public class SmsFlashPromotionSessionServiceImpl implements SmsFlashPromotionSes
     @Override
     public int update(Long id, SmsFlashPromotionSession promotionSession) {
         promotionSession.setId(id);
-        return promotionSessionMapper.updateByPrimaryKey(promotionSession);
+        return promotionSessionMapper.updateById(promotionSession);
     }
 
     @Override
@@ -42,31 +42,29 @@ public class SmsFlashPromotionSessionServiceImpl implements SmsFlashPromotionSes
         SmsFlashPromotionSession promotionSession = new SmsFlashPromotionSession();
         promotionSession.setId(id);
         promotionSession.setStatus(status);
-        return promotionSessionMapper.updateByPrimaryKeySelective(promotionSession);
+        return promotionSessionMapper.updateById(promotionSession);
     }
 
     @Override
     public int delete(Long id) {
-        return promotionSessionMapper.deleteByPrimaryKey(id);
+        return promotionSessionMapper.deleteById(id);
     }
 
     @Override
     public SmsFlashPromotionSession getItem(Long id) {
-        return promotionSessionMapper.selectByPrimaryKey(id);
+        return promotionSessionMapper.selectById(id);
     }
 
     @Override
     public List<SmsFlashPromotionSession> list() {
-        SmsFlashPromotionSessionExample example = new SmsFlashPromotionSessionExample();
-        return promotionSessionMapper.selectByExample(example);
+        return promotionSessionMapper.selectList(null);
     }
 
     @Override
     public List<SmsFlashPromotionSessionDetail> selectList(Long flashPromotionId) {
         List<SmsFlashPromotionSessionDetail> result = new ArrayList<>();
-        SmsFlashPromotionSessionExample example = new SmsFlashPromotionSessionExample();
-        example.createCriteria().andStatusEqualTo(1);
-        List<SmsFlashPromotionSession> list = promotionSessionMapper.selectByExample(example);
+        List<SmsFlashPromotionSession> list = promotionSessionMapper.selectList(new LambdaQueryWrapper<SmsFlashPromotionSession>()
+                .eq(SmsFlashPromotionSession::getStatus, 1));
         for (SmsFlashPromotionSession promotionSession : list) {
             SmsFlashPromotionSessionDetail detail = new SmsFlashPromotionSessionDetail();
             BeanUtils.copyProperties(promotionSession, detail);

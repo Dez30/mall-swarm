@@ -2,6 +2,7 @@ package com.macro.mall.service;
 
 import com.macro.mall.model.UmsResource;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public interface UmsResourceService {
     /**
      * 分页查询资源
      */
-    List<UmsResource> list(Long categoryId, String nameKeyword, String urlKeyword, Integer pageSize, Integer pageNum);
+    Page<UmsResource> list(Long categoryId, String nameKeyword, String urlKeyword, Integer pageSize, Integer pageNum);
 
     /**
      * 查询全部资源

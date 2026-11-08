@@ -5,6 +5,7 @@ import com.macro.mall.model.UmsResource;
 import com.macro.mall.model.UmsRole;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public interface UmsRoleService {
     /**
      * 分页获取角色列表
      */
-    List<UmsRole> list(String keyword, Integer pageSize, Integer pageNum);
+    Page<UmsRole> list(String keyword, Integer pageSize, Integer pageNum);
 
     /**
      * 根据管理员ID获取对应菜单

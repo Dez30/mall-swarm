@@ -4,6 +4,7 @@ import com.macro.mall.dto.PmsBrandParam;
 import com.macro.mall.model.PmsBrand;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public interface PmsBrandService {
     /**
      * 分页查询品牌
      */
-    List<PmsBrand> listBrand(String keyword, int pageNum, int pageSize);
+    Page<PmsBrand> listBrand(String keyword, int pageNum, int pageSize);
 
     /**
      * 获取品牌

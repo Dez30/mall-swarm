@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public interface PmsProductService {
     /**
      * 分页查询商品
      */
-    List<PmsProduct> list(PmsProductQueryParam productQueryParam, Integer pageSize, Integer pageNum);
+    Page<PmsProduct> list(PmsProductQueryParam productQueryParam, Integer pageSize, Integer pageNum);
 
     /**
      * 批量修改审核状态

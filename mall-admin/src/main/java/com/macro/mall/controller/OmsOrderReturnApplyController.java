@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.dto.OmsOrderReturnApplyResult;
@@ -33,8 +34,9 @@ public class OmsOrderReturnApplyController {
     public CommonResult<CommonPage<OmsOrderReturnApply>> list(OmsReturnApplyQueryParam queryParam,
                                                               @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                               @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<OmsOrderReturnApply> returnApplyList = returnApplyService.list(queryParam, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(returnApplyList));
+        Page<OmsOrderReturnApply> returnApplyList = returnApplyService.list(queryParam, pageSize, pageNum);
+        CommonPage<OmsOrderReturnApply> resultPage = CommonPage.restPage(returnApplyList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "批量删除申请")

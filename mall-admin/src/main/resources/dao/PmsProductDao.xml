@@ -3,15 +3,15 @@
 <mapper namespace="com.macro.mall.dao.PmsProductDao">
     <resultMap id="updateInfoMap" type="com.macro.mall.dto.PmsProductResult" extends="com.macro.mall.mapper.PmsProductMapper.ResultMapWithBLOBs">
         <result column="cateParentId" jdbcType="BIGINT" property="cateParentId" />
-        <collection property="productLadderList" columnPrefix="ladder_" resultMap="com.macro.mall.mapper.PmsProductLadderMapper.BaseResultMap">
+        <collection property="productLadderList" columnPrefix="ladder_" resultMap="PmsProductLadderBaseResultMap">
         </collection>
-        <collection property="productFullReductionList" columnPrefix="full_" resultMap="com.macro.mall.mapper.PmsProductFullReductionMapper.BaseResultMap">
+        <collection property="productFullReductionList" columnPrefix="full_" resultMap="PmsProductFullReductionBaseResultMap">
         </collection>
-        <collection property="memberPriceList" columnPrefix="member_" resultMap="com.macro.mall.mapper.PmsMemberPriceMapper.BaseResultMap">
+        <collection property="memberPriceList" columnPrefix="member_" resultMap="PmsMemberPriceBaseResultMap">
         </collection>
-        <collection property="skuStockList" columnPrefix="sku_" resultMap="com.macro.mall.mapper.PmsSkuStockMapper.BaseResultMap">
+        <collection property="skuStockList" columnPrefix="sku_" resultMap="PmsSkuStockBaseResultMap">
         </collection>
-        <collection property="productAttributeValueList" columnPrefix="attribute_" resultMap="com.macro.mall.mapper.PmsProductAttributeValueMapper.BaseResultMap">
+        <collection property="productAttributeValueList" columnPrefix="attribute_" resultMap="PmsProductAttributeValueBaseResultMap">
         </collection>
         <collection property="subjectProductRelationList" column="{productId=id}" select="selectSubjectProductRelationByProductId"/>
         <collection property="prefrenceAreaProductRelationList" column="{productId=id}" select="selectPrefrenceAreaProductRelationByProductId"/>
@@ -35,11 +35,60 @@
         LEFT JOIN pms_product_attribute_value a ON a.product_id=p.id
         WHERE p.id=#{id};
     </select>
-    <select id="selectSubjectProductRelationByProductId" resultMap="com.macro.mall.mapper.CmsSubjectProductRelationMapper.BaseResultMap">
+    <select id="selectSubjectProductRelationByProductId" resultMap="CmsSubjectProductRelationBaseResultMap">
         select * from cms_subject_product_relation where product_id=#{productId}
     </select>
-    <select id="selectPrefrenceAreaProductRelationByProductId" resultMap="com.macro.mall.mapper.CmsPrefrenceAreaProductRelationMapper.BaseResultMap">
+    <select id="selectPrefrenceAreaProductRelationByProductId" resultMap="CmsPrefrenceAreaProductRelationBaseResultMap">
         select * from cms_prefrence_area_product_relation where product_id=#{productId}
     </select>
 
+<resultMap id="PmsProductLadderBaseResultMap" type="com.macro.mall.model.PmsProductLadder">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="count" jdbcType="INTEGER" property="count" />
+    <result column="discount" jdbcType="DECIMAL" property="discount" />
+    <result column="price" jdbcType="DECIMAL" property="price" />
+  </resultMap>
+<resultMap id="PmsProductFullReductionBaseResultMap" type="com.macro.mall.model.PmsProductFullReduction">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="full_price" jdbcType="DECIMAL" property="fullPrice" />
+    <result column="reduce_price" jdbcType="DECIMAL" property="reducePrice" />
+  </resultMap>
+<resultMap id="PmsMemberPriceBaseResultMap" type="com.macro.mall.model.PmsMemberPrice">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="member_level_id" jdbcType="BIGINT" property="memberLevelId" />
+    <result column="member_price" jdbcType="DECIMAL" property="memberPrice" />
+    <result column="member_level_name" jdbcType="VARCHAR" property="memberLevelName" />
+  </resultMap>
+<resultMap id="PmsSkuStockBaseResultMap" type="com.macro.mall.model.PmsSkuStock">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="sku_code" jdbcType="VARCHAR" property="skuCode" />
+    <result column="price" jdbcType="DECIMAL" property="price" />
+    <result column="stock" jdbcType="INTEGER" property="stock" />
+    <result column="low_stock" jdbcType="INTEGER" property="lowStock" />
+    <result column="pic" jdbcType="VARCHAR" property="pic" />
+    <result column="sale" jdbcType="INTEGER" property="sale" />
+    <result column="promotion_price" jdbcType="DECIMAL" property="promotionPrice" />
+    <result column="lock_stock" jdbcType="INTEGER" property="lockStock" />
+    <result column="sp_data" jdbcType="VARCHAR" property="spData" />
+  </resultMap>
+<resultMap id="PmsProductAttributeValueBaseResultMap" type="com.macro.mall.model.PmsProductAttributeValue">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="product_attribute_id" jdbcType="BIGINT" property="productAttributeId" />
+    <result column="value" jdbcType="VARCHAR" property="value" />
+  </resultMap>
+<resultMap id="CmsSubjectProductRelationBaseResultMap" type="com.macro.mall.model.CmsSubjectProductRelation">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="subject_id" jdbcType="BIGINT" property="subjectId" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+  </resultMap>
+<resultMap id="CmsPrefrenceAreaProductRelationBaseResultMap" type="com.macro.mall.model.CmsPrefrenceAreaProductRelation">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="prefrence_area_id" jdbcType="BIGINT" property="prefrenceAreaId" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+  </resultMap>
 </mapper>

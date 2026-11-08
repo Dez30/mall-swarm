@@ -1,11 +1,10 @@
 package com.macro.mall.service.impl;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.dao.PmsProductAttributeCategoryDao;
 import com.macro.mall.dto.PmsProductAttributeCategoryItem;
 import com.macro.mall.mapper.PmsProductAttributeCategoryMapper;
 import com.macro.mall.model.PmsProductAttributeCategory;
-import com.macro.mall.model.PmsProductAttributeCategoryExample;
 import com.macro.mall.service.PmsProductAttributeCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class PmsProductAttributeCategoryServiceImpl implements PmsProductAttribu
     public int create(String name) {
         PmsProductAttributeCategory productAttributeCategory = new PmsProductAttributeCategory();
         productAttributeCategory.setName(name);
-        return productAttributeCategoryMapper.insertSelective(productAttributeCategory);
+        return productAttributeCategoryMapper.insert(productAttributeCategory);
     }
 
     @Override
@@ -35,23 +34,22 @@ public class PmsProductAttributeCategoryServiceImpl implements PmsProductAttribu
         PmsProductAttributeCategory productAttributeCategory = new PmsProductAttributeCategory();
         productAttributeCategory.setName(name);
         productAttributeCategory.setId(id);
-        return productAttributeCategoryMapper.updateByPrimaryKeySelective(productAttributeCategory);
+        return productAttributeCategoryMapper.updateById(productAttributeCategory);
     }
 
     @Override
     public int delete(Long id) {
-        return productAttributeCategoryMapper.deleteByPrimaryKey(id);
+        return productAttributeCategoryMapper.deleteById(id);
     }
 
     @Override
     public PmsProductAttributeCategory getItem(Long id) {
-        return productAttributeCategoryMapper.selectByPrimaryKey(id);
+        return productAttributeCategoryMapper.selectById(id);
     }
 
     @Override
-    public List<PmsProductAttributeCategory> getList(Integer pageSize, Integer pageNum) {
-        PageHelper.startPage(pageNum,pageSize);
-        return productAttributeCategoryMapper.selectByExample(new PmsProductAttributeCategoryExample());
+    public Page<PmsProductAttributeCategory> getList(Integer pageSize, Integer pageNum) {
+        return productAttributeCategoryMapper.selectPage(new Page<>(pageNum, pageSize), null);
     }
 
     @Override

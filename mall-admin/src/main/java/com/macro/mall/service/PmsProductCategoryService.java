@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -29,7 +30,7 @@ public interface PmsProductCategoryService {
     /**
      * 分页获取商品分类
      */
-    List<PmsProductCategory> getList(Long parentId, Integer pageSize, Integer pageNum);
+    Page<PmsProductCategory> getList(Long parentId, Integer pageSize, Integer pageNum);
 
     /**
      * 删除商品分类

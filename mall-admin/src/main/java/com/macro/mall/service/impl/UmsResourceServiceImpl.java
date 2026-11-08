@@ -1,7 +1,8 @@
 package com.macro.mall.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.constant.AuthConstant;
 import com.macro.mall.common.service.RedisService;
 import com.macro.mall.mapper.UmsResourceMapper;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 后台资源管理Service实现类
@@ -36,49 +38,40 @@ public class UmsResourceServiceImpl implements UmsResourceService {
     @Override
     public int update(Long id, UmsResource umsResource) {
         umsResource.setId(id);
-        int count = resourceMapper.updateByPrimaryKeySelective(umsResource);
+        int count = resourceMapper.updateById(umsResource);
         initPathResourceMap();
         return count;
     }
 
     @Override
     public UmsResource getItem(Long id) {
-        return resourceMapper.selectByPrimaryKey(id);
+        return resourceMapper.selectById(id);
     }
 
     @Override
     public int delete(Long id) {
-        int count = resourceMapper.deleteByPrimaryKey(id);
+        int count = resourceMapper.deleteById(id);
         initPathResourceMap();
         return count;
     }
 
     @Override
-    public List<UmsResource> list(Long categoryId, String nameKeyword, String urlKeyword, Integer pageSize, Integer pageNum) {
-        PageHelper.startPage(pageNum,pageSize);
-        UmsResourceExample example = new UmsResourceExample();
-        UmsResourceExample.Criteria criteria = example.createCriteria();
-        if(categoryId!=null){
-            criteria.andCategoryIdEqualTo(categoryId);
-        }
-        if(StrUtil.isNotEmpty(nameKeyword)){
-            criteria.andNameLike('%'+nameKeyword+'%');
-        }
-        if(StrUtil.isNotEmpty(urlKeyword)){
-            criteria.andUrlLike('%'+urlKeyword+'%');
-        }
-        return resourceMapper.selectByExample(example);
+    public Page<UmsResource> list(Long categoryId, String nameKeyword, String urlKeyword, Integer pageSize, Integer pageNum) {
+        return resourceMapper.selectPage(new Page<>(pageNum, pageSize), new LambdaQueryWrapper<UmsResource>()
+                .eq(categoryId != null, UmsResource::getCategoryId, categoryId)
+                .like(StrUtil.isNotEmpty(nameKeyword), UmsResource::getName, "%" + nameKeyword + "%")
+                .like(StrUtil.isNotEmpty(urlKeyword), UmsResource::getUrl, "%" + urlKeyword + "%"));
     }
 
     @Override
     public List<UmsResource> listAll() {
-        return resourceMapper.selectByExample(new UmsResourceExample());
+        return resourceMapper.selectList(null);
     }
 
     @Override
     public Map<String,String> initPathResourceMap() {
         Map<String,String> pathResourceMap = new TreeMap<>();
-        List<UmsResource> resourceList = resourceMapper.selectByExample(new UmsResourceExample());
+        List<UmsResource> resourceList = resourceMapper.selectList(null);
         for (UmsResource resource : resourceList) {
             pathResourceMap.put("/"+applicationName+resource.getUrl(),resource.getId()+":"+resource.getName());
         }

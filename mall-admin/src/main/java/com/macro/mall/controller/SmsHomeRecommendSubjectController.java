@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.model.SmsHomeRecommendSubject;
@@ -75,7 +76,8 @@ public class SmsHomeRecommendSubjectController {
                                                                   @RequestParam(value = "recommendStatus", required = false) Integer recommendStatus,
                                                                   @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                                   @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<SmsHomeRecommendSubject> homeBrandList = recommendSubjectService.list(subjectName, recommendStatus, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(homeBrandList));
+        Page<SmsHomeRecommendSubject> homeBrandList = recommendSubjectService.list(subjectName, recommendStatus, pageSize, pageNum);
+        CommonPage<SmsHomeRecommendSubject> resultPage = CommonPage.restPage(homeBrandList);
+        return CommonResult.success(resultPage);
     }
 }

@@ -2,6 +2,7 @@ package com.macro.mall.service;
 
 import com.macro.mall.model.OmsOrderReturnReason;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public interface OmsOrderReturnReasonService {
     /**
      * 分页获取退货原因
      */
-    List<OmsOrderReturnReason> list(Integer pageSize, Integer pageNum);
+    Page<OmsOrderReturnReason> list(Integer pageSize, Integer pageNum);
 
     /**
      * 批量修改退货原因状态

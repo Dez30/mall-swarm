@@ -2,6 +2,7 @@ package com.macro.mall.service;
 
 import com.macro.mall.model.SmsFlashPromotion;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -37,5 +38,5 @@ public interface SmsFlashPromotionService {
     /**
      * 分页查询活动
      */
-    List<SmsFlashPromotion> list(String keyword, Integer pageSize, Integer pageNum);
+    Page<SmsFlashPromotion> list(String keyword, Integer pageSize, Integer pageNum);
 }

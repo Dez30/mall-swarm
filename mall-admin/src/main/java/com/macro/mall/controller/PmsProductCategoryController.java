@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.dto.PmsProductCategoryParam;
@@ -59,8 +60,9 @@ public class PmsProductCategoryController {
     public CommonResult<CommonPage<PmsProductCategory>> getList(@PathVariable Long parentId,
                                                                 @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                                 @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<PmsProductCategory> productCategoryList = productCategoryService.getList(parentId, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(productCategoryList));
+        Page<PmsProductCategory> productCategoryList = productCategoryService.getList(parentId, pageSize, pageNum);
+        CommonPage<PmsProductCategory> resultPage = CommonPage.restPage(productCategoryList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "根据id获取商品分类")

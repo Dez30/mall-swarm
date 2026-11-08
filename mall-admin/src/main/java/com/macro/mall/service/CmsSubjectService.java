@@ -2,6 +2,7 @@ package com.macro.mall.service;
 
 import com.macro.mall.model.CmsSubject;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -17,5 +18,5 @@ public interface CmsSubjectService {
     /**
      * 分页查询专题
      */
-    List<CmsSubject> list(String keyword, Integer pageNum, Integer pageSize);
+    Page<CmsSubject> list(String keyword, Integer pageNum, Integer pageSize);
 }

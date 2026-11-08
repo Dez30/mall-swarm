@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.model.*;
@@ -71,8 +72,9 @@ public class UmsRoleController {
     public CommonResult<CommonPage<UmsRole>> list(@RequestParam(value = "keyword", required = false) String keyword,
                                                   @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                   @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<UmsRole> roleList = roleService.list(keyword, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(roleList));
+        Page<UmsRole> roleList = roleService.list(keyword, pageSize, pageNum);
+        CommonPage<UmsRole> resultPage = CommonPage.restPage(roleList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "修改角色状态")

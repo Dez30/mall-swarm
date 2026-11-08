@@ -3,6 +3,7 @@ package com.macro.mall.service;
 import com.macro.mall.dto.UmsMenuNode;
 import com.macro.mall.model.UmsMenu;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ public interface UmsMenuService {
     /**
      * 分页查询后台菜单
      */
-    List<UmsMenu> list(Long parentId, Integer pageSize, Integer pageNum);
+    Page<UmsMenu> list(Long parentId, Integer pageSize, Integer pageNum);
 
     /**
      * 树形结构返回所有菜单列表

@@ -5,6 +5,7 @@ import com.macro.mall.dto.OmsReturnApplyQueryParam;
 import com.macro.mall.dto.OmsUpdateStatusParam;
 import com.macro.mall.model.OmsOrderReturnApply;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public interface OmsOrderReturnApplyService {
     /**
      * 分页查询申请
      */
-    List<OmsOrderReturnApply> list(OmsReturnApplyQueryParam queryParam, Integer pageSize, Integer pageNum);
+    Page<OmsOrderReturnApply> list(OmsReturnApplyQueryParam queryParam, Integer pageSize, Integer pageNum);
 
     /**
      * 批量删除申请

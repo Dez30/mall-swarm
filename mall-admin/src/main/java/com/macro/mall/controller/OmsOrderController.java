@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.dto.*;
@@ -31,8 +32,9 @@ public class OmsOrderController {
     public CommonResult<CommonPage<OmsOrder>> list(OmsOrderQueryParam queryParam,
                                                    @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                    @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<OmsOrder> orderList = orderService.list(queryParam, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(orderList));
+        Page<OmsOrder> orderList = orderService.list(queryParam, pageSize, pageNum);
+        CommonPage<OmsOrder> resultPage = CommonPage.restPage(orderList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "批量发货")

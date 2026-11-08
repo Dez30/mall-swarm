@@ -5,6 +5,7 @@ import com.macro.mall.dto.ProductAttrInfo;
 import com.macro.mall.model.PmsProductAttribute;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ public interface PmsProductAttributeService {
      * @param cid 分类id
      * @param type 0->属性；2->参数
      */
-    List<PmsProductAttribute> getList(Long cid, Integer type, Integer pageSize, Integer pageNum);
+    Page<PmsProductAttribute> getList(Long cid, Integer type, Integer pageSize, Integer pageNum);
 
     /**
      * 添加商品属性

@@ -3,6 +3,7 @@ package com.macro.mall.service;
 import com.macro.mall.model.SmsHomeBrand;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 /**
@@ -34,5 +35,5 @@ public interface SmsHomeBrandService {
     /**
      * 分页查询品牌推荐
      */
-    List<SmsHomeBrand> list(String brandName, Integer recommendStatus, Integer pageSize, Integer pageNum);
+    Page<SmsHomeBrand> list(String brandName, Integer recommendStatus, Integer pageSize, Integer pageNum);
 }

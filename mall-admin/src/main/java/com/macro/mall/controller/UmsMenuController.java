@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.dto.UmsMenuNode;
@@ -77,8 +78,9 @@ public class UmsMenuController {
     public CommonResult<CommonPage<UmsMenu>> list(@PathVariable Long parentId,
                                                   @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                   @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<UmsMenu> menuList = menuService.list(parentId, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(menuList));
+        Page<UmsMenu> menuList = menuService.list(parentId, pageSize, pageNum);
+        CommonPage<UmsMenu> resultPage = CommonPage.restPage(menuList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "树形结构返回所有菜单列表")

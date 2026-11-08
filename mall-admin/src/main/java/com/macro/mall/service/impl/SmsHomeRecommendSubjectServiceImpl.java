@@ -1,9 +1,10 @@
 package com.macro.mall.service.impl;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.mapper.SmsHomeRecommendSubjectMapper;
 import com.macro.mall.model.SmsHomeRecommendSubject;
-import com.macro.mall.model.SmsHomeRecommendSubjectExample;
 import com.macro.mall.service.SmsHomeRecommendSubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,37 +35,27 @@ public class SmsHomeRecommendSubjectServiceImpl implements SmsHomeRecommendSubje
         SmsHomeRecommendSubject recommendProduct = new SmsHomeRecommendSubject();
         recommendProduct.setId(id);
         recommendProduct.setSort(sort);
-        return recommendProductMapper.updateByPrimaryKeySelective(recommendProduct);
+        return recommendProductMapper.updateById(recommendProduct);
     }
 
     @Override
     public int delete(List<Long> ids) {
-        SmsHomeRecommendSubjectExample example = new SmsHomeRecommendSubjectExample();
-        example.createCriteria().andIdIn(ids);
-        return recommendProductMapper.deleteByExample(example);
+        return recommendProductMapper.delete(new LambdaQueryWrapper<SmsHomeRecommendSubject>()
+                .in(SmsHomeRecommendSubject::getId, ids));
     }
 
     @Override
     public int updateRecommendStatus(List<Long> ids, Integer recommendStatus) {
-        SmsHomeRecommendSubjectExample example = new SmsHomeRecommendSubjectExample();
-        example.createCriteria().andIdIn(ids);
-        SmsHomeRecommendSubject record = new SmsHomeRecommendSubject();
-        record.setRecommendStatus(recommendStatus);
-        return recommendProductMapper.updateByExampleSelective(record,example);
+        return recommendProductMapper.update(null, new LambdaUpdateWrapper<SmsHomeRecommendSubject>()
+                .in(SmsHomeRecommendSubject::getId, ids)
+                .set(SmsHomeRecommendSubject::getRecommendStatus, recommendStatus));
     }
 
     @Override
-    public List<SmsHomeRecommendSubject> list(String subjectName, Integer recommendStatus, Integer pageSize, Integer pageNum) {
-        PageHelper.startPage(pageNum,pageSize);
-        SmsHomeRecommendSubjectExample example = new SmsHomeRecommendSubjectExample();
-        SmsHomeRecommendSubjectExample.Criteria criteria = example.createCriteria();
-        if(!StringUtils.isEmpty(subjectName)){
-            criteria.andSubjectNameLike("%"+subjectName+"%");
-        }
-        if(recommendStatus!=null){
-            criteria.andRecommendStatusEqualTo(recommendStatus);
-        }
-        example.setOrderByClause("sort desc");
-        return recommendProductMapper.selectByExample(example);
+    public Page<SmsHomeRecommendSubject> list(String subjectName, Integer recommendStatus, Integer pageSize, Integer pageNum) {
+        return recommendProductMapper.selectPage(new Page<>(pageNum, pageSize), new LambdaQueryWrapper<SmsHomeRecommendSubject>()
+                .like(!StringUtils.isEmpty(subjectName), SmsHomeRecommendSubject::getSubjectName, "%" + subjectName + "%")
+                .eq(recommendStatus != null, SmsHomeRecommendSubject::getRecommendStatus, recommendStatus)
+                .orderByDesc(SmsHomeRecommendSubject::getSort));
     }
 }

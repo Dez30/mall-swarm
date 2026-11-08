@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.model.OmsOrderReturnReason;
@@ -62,8 +63,9 @@ public class OmsOrderReturnReasonController {
     @ResponseBody
     public CommonResult<CommonPage<OmsOrderReturnReason>> list(@RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                                @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<OmsOrderReturnReason> reasonList = orderReturnReasonService.list(pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(reasonList));
+        Page<OmsOrderReturnReason> reasonList = orderReturnReasonService.list(pageSize, pageNum);
+        CommonPage<OmsOrderReturnReason> resultPage = CommonPage.restPage(reasonList);
+        return CommonResult.success(resultPage);
     }
 
     @Operation(summary = "获取单个退货原因详情信息")

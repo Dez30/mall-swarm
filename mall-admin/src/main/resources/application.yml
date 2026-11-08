@@ -32,10 +32,11 @@ spring:
     multipart:
       enabled: true #开启文件上传
       max-file-size: 10MB #限制文件上传大小为10M
-mybatis:
+mybatis-plus:
   mapper-locations:
     - classpath:dao/*.xml
-    - classpath*:com/**/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 management:
   endpoints:
     web:

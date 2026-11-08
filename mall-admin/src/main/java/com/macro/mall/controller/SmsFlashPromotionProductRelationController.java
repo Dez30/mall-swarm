@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.dto.SmsFlashPromotionProduct;
@@ -73,7 +74,8 @@ public class SmsFlashPromotionProductRelationController {
                                                                    @RequestParam(value = "flashPromotionSessionId") Long flashPromotionSessionId,
                                                                    @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                                    @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<SmsFlashPromotionProduct> flashPromotionProductList = relationService.list(flashPromotionId, flashPromotionSessionId, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(flashPromotionProductList));
+        Page<SmsFlashPromotionProduct> flashPromotionProductList = relationService.list(flashPromotionId, flashPromotionSessionId, pageSize, pageNum);
+        CommonPage<SmsFlashPromotionProduct> resultPage = CommonPage.restPage(flashPromotionProductList);
+        return CommonResult.success(resultPage);
     }
 }

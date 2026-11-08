@@ -1,5 +1,6 @@
 package com.macro.mall.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.model.SmsCouponHistory;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
 
 /**
  * 优惠券领取记录管理Controller
@@ -35,7 +35,8 @@ public class SmsCouponHistoryController {
                                                            @RequestParam(value = "orderSn", required = false) String orderSn,
                                                            @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        List<SmsCouponHistory> historyList = historyService.list(couponId, useStatus, orderSn, pageSize, pageNum);
-        return CommonResult.success(CommonPage.restPage(historyList));
+        Page<SmsCouponHistory> historyList = historyService.list(couponId, useStatus, orderSn, pageSize, pageNum);
+        CommonPage<SmsCouponHistory> resultPage = CommonPage.restPage(historyList);
+        return CommonResult.success(resultPage);
     }
 }
