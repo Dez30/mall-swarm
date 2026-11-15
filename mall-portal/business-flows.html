@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="mall-portal 关键业务接口、订单支付链路、数据交互与异常补偿流程文档">
+  <title>mall-portal · 关键业务接口流程</title>
+  <style>
+    :root {
+      --ink: #172b3a;
+      --muted: #647581;
+      --paper: #f4f5f2;
+      --surface: #ffffff;
+      --line: #dfe5e3;
+      --teal: #087f73;
+      --teal-soft: #e6f3f0;
+      --navy: #102c3b;
+      --amber: #b96819;
+      --amber-soft: #fff4e5;
+      --red: #a84242;
+      --red-soft: #fff0ee;
+      --blue-soft: #eaf1f8;
+      --code: #eaf0ee;
+      --shadow: 0 12px 34px rgba(23, 43, 58, .07);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+    }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    code, pre, .mono {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      color: #135f59;
+      background: var(--code);
+      font-size: .88em;
+      overflow-wrap: anywhere;
+    }
+    pre {
+      margin: 16px 0 0;
+      padding: 20px;
+      overflow: auto;
+      color: #dceae7;
+      background: #122b37;
+      border-radius: 12px;
+      line-height: 1.65;
+      font-size: 13px;
+    }
+    pre code { padding: 0; color: inherit; background: none; font-size: inherit; }
+    .layout { display: grid; grid-template-columns: 268px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 22px;
+      overflow-y: auto;
+      color: #dbe7e6;
+      background: var(--navy);
+      z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .brand-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      color: #0e302f;
+      background: #79d4c5;
+      border-radius: 11px;
+      font-weight: 800;
+      font-size: 20px;
+    }
+    .brand strong { display: block; color: #fff; letter-spacing: .02em; }
+    .brand small { display: block; color: #8fa8b1; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .search-box { position: relative; margin-bottom: 8px; }
+    .search-box input {
+      width: 100%;
+      padding: 10px 34px 10px 12px;
+      color: #eff8f6;
+      background: #1b3a49;
+      border: 1px solid #31505d;
+      border-radius: 9px;
+      outline: none;
+      font-size: 13px;
+    }
+    .search-box input::placeholder { color: #91a9b1; }
+    .search-box input:focus { border-color: #79d4c5; box-shadow: 0 0 0 3px rgba(121, 212, 197, .12); }
+    .search-clear {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 30px;
+      height: 30px;
+      color: #a9bec4;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+    }
+    .search-status { min-height: 24px; margin: 0 4px 14px; color: #8fa8b1; font-size: 11px; }
+    .nav-label { margin: 20px 10px 7px; color: #728f9a; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; }
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      color: #b7c9ce;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 13px;
+      transition: .18s ease;
+    }
+    .nav a:hover, .nav a.active { color: #fff; background: #1e404e; }
+    .nav a.active { box-shadow: inset 3px 0 #79d4c5; }
+    .nav-num { width: 22px; color: #6f939e; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .sidebar-footer { margin-top: 26px; padding-top: 18px; border-top: 1px solid #294553; color: #829da6; font-size: 11px; }
+    .print-button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px 12px;
+      color: #cfe0e2;
+      background: transparent;
+      border: 1px solid #3a5662;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .print-button:hover { color: #fff; border-color: #79d4c5; }
+    main { min-width: 0; padding: 34px 42px 70px; }
+    .content { max-width: 1180px; margin: 0 auto; }
+    .hero {
+      position: relative;
+      padding: 44px 46px 38px;
+      overflow: hidden;
+      color: #fff;
+      background: var(--navy);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -58px;
+      top: -80px;
+      width: 260px;
+      height: 260px;
+      border: 48px solid rgba(121, 212, 197, .08);
+      border-radius: 50%;
+    }
+    .eyebrow { margin: 0 0 12px; color: var(--teal); font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    .hero .eyebrow { color: #79d4c5; }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(30px, 4vw, 48px); line-height: 1.18; letter-spacing: -.035em; }
+    .hero-desc { max-width: 760px; margin: 18px 0 26px; color: #b9ccd2; font-size: 16px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hero-meta span { padding: 5px 10px; color: #c4d8db; background: #1a3b49; border: 1px solid #2b4d59; border-radius: 999px; font-size: 11px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 32px; overflow: hidden; background: #31505b; border: 1px solid #31505b; border-radius: 12px; }
+    .metric { padding: 16px 18px; background: #153441; }
+    .metric strong { display: block; color: #fff; font-size: 25px; line-height: 1.2; }
+    .metric span { color: #91acb4; font-size: 11px; }
+    .quick-note { display: flex; gap: 14px; align-items: flex-start; margin: 18px 0 0; padding: 15px 18px; color: #506570; background: #e8eeeb; border-radius: 12px; font-size: 13px; }
+    .quick-note strong { color: var(--ink); white-space: nowrap; }
+    .doc-section { margin-top: 26px; padding: 34px 36px; background: var(--surface); border: 1px solid #e3e8e5; border-radius: var(--radius); box-shadow: 0 5px 20px rgba(23, 43, 58, .025); }
+    .section-head { display: grid; grid-template-columns: 48px 1fr; gap: 16px; align-items: start; margin-bottom: 24px; }
+    .section-index { display: grid; width: 44px; height: 44px; place-items: center; color: var(--teal); background: var(--teal-soft); border-radius: 12px; font-weight: 750; font-size: 13px; }
+    h2 { margin: -4px 0 3px; font-size: 25px; line-height: 1.35; letter-spacing: -.025em; }
+    h3 { margin: 28px 0 12px; font-size: 18px; line-height: 1.4; }
+    h4 { margin: 0 0 8px; font-size: 15px; }
+    p { margin: 9px 0; }
+    .section-subtitle { margin: 0; color: var(--muted); font-size: 13px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .source { margin-top: 18px; padding-top: 13px; color: #71818a; border-top: 1px dashed var(--line); font-size: 11px; line-height: 1.9; }
+    .source code { font-size: 10px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .card { padding: 18px; background: #fafbf9; border: 1px solid var(--line); border-radius: 12px; }
+    .card p { margin: 4px 0; color: #586b76; font-size: 13px; }
+    .card-icon { display: inline-grid; min-width: 30px; height: 30px; margin-bottom: 10px; padding: 0 8px; place-items: center; color: var(--teal); background: var(--teal-soft); border-radius: 8px; font-size: 11px; font-weight: 700; }
+    .callout { margin: 18px 0; padding: 16px 18px; background: var(--blue-soft); border-left: 4px solid #497da7; border-radius: 0 10px 10px 0; }
+    .callout.warning { background: var(--amber-soft); border-left-color: var(--amber); }
+    .callout.danger { background: var(--red-soft); border-left-color: var(--red); }
+    .callout.success { background: var(--teal-soft); border-left-color: var(--teal); }
+    .callout strong { display: block; margin-bottom: 3px; }
+    .callout p { margin: 2px 0; font-size: 13px; }
+    .architecture { display: flex; align-items: stretch; gap: 8px; margin: 20px 0; overflow-x: auto; padding-bottom: 5px; }
+    .arch-node { flex: 1 0 120px; padding: 14px 12px; text-align: center; background: #f7faf8; border: 1px solid var(--line); border-radius: 11px; }
+    .arch-node strong { display: block; font-size: 13px; }
+    .arch-node span { display: block; color: var(--muted); font-size: 11px; }
+    .arch-arrow { align-self: center; color: #8ba19f; font-size: 20px; }
+    .journey { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 8px; margin: 20px 0; }
+    .journey-step { position: relative; min-height: 145px; padding: 15px 12px; background: #f7faf8; border-top: 3px solid #94c9be; border-radius: 6px 6px 11px 11px; }
+    .journey-step b { display: block; margin-bottom: 8px; color: var(--teal); font-size: 11px; }
+    .journey-step strong { display: block; margin-bottom: 5px; font-size: 13px; }
+    .journey-step span { display: block; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .table-wrap { margin: 14px 0 20px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.6; }
+    th { padding: 11px 12px; color: #61747d; background: #f3f6f4; text-align: left; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 12px; vertical-align: top; border-top: 1px solid #e8edeb; }
+    tbody tr:hover { background: #fbfdfc; }
+    td.path { min-width: 215px; }
+    td.path code { color: #234d55; background: #edf2f1; white-space: nowrap; }
+    .method { display: inline-block; min-width: 42px; padding: 2px 6px; text-align: center; border-radius: 5px; font-family: Consolas, monospace; font-size: 10px; font-weight: 800; }
+    .method.get { color: #216b53; background: #e0f1e8; }
+    .method.post { color: #3c5f9b; background: #e7eef9; }
+    .auth { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; white-space: nowrap; }
+    .auth.public { color: #216b53; background: var(--teal-soft); }
+    .auth.member { color: #81551c; background: var(--amber-soft); }
+    .flow-steps { margin: 14px 0; padding: 0; list-style: none; counter-reset: flow; }
+    .flow-steps li { position: relative; margin-left: 16px; padding: 0 0 17px 42px; counter-increment: flow; }
+    .flow-steps li::before { content: counter(flow); position: absolute; left: 0; top: 0; display: grid; width: 27px; height: 27px; place-items: center; color: var(--teal); background: var(--teal-soft); border-radius: 50%; font-size: 11px; font-weight: 800; }
+    .flow-steps li::after { content: ""; position: absolute; left: 13px; top: 30px; bottom: 3px; width: 1px; background: #d6e4df; }
+    .flow-steps li:last-child::after { display: none; }
+    .flow-steps strong { display: block; font-size: 13px; }
+    .flow-steps p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    details { margin: 14px 0; background: #fafbf9; border: 1px solid var(--line); border-radius: 11px; }
+    summary { padding: 13px 16px; cursor: pointer; font-weight: 650; font-size: 13px; }
+    details > div { padding: 0 16px 16px; }
+    .state-line { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 12px 0; }
+    .state { padding: 5px 9px; color: #435b65; background: #f0f4f3; border: 1px solid var(--line); border-radius: 7px; font-size: 11px; }
+    .state b { color: var(--teal); }
+    .risk-list { display: grid; gap: 10px; }
+    .risk { display: grid; grid-template-columns: 64px 1fr; gap: 13px; padding: 14px 16px; background: #fbfbf9; border: 1px solid var(--line); border-radius: 10px; }
+    .risk-level { align-self: start; padding: 2px 6px; text-align: center; color: var(--red); background: var(--red-soft); border-radius: 5px; font-size: 10px; font-weight: 750; }
+    .risk strong { display: block; font-size: 13px; }
+    .risk p { margin: 3px 0; color: var(--muted); font-size: 12px; }
+    .checklist { margin: 10px 0; padding-left: 20px; }
+    .checklist li { margin: 7px 0; }
+    .empty-search { display: none; margin-top: 26px; padding: 40px; text-align: center; color: var(--muted); background: #fff; border: 1px dashed #bdccc8; border-radius: var(--radius); }
+    .back-top { position: fixed; right: 24px; bottom: 24px; display: none; width: 42px; height: 42px; color: #fff; background: var(--teal); border: 0; border-radius: 50%; box-shadow: var(--shadow); cursor: pointer; }
+    .back-top.visible { display: block; }
+    [hidden] { display: none !important; }
+    @media (max-width: 1180px) {
+      .journey { grid-template-columns: repeat(4, 1fr); }
+      main { padding: 26px; }
+    }
+    @media (max-width: 900px) {
+      .layout { display: block; }
+      .sidebar { position: relative; height: auto; padding: 20px; }
+      .brand { margin-bottom: 16px; }
+      .nav { display: grid; grid-template-columns: repeat(2, 1fr); }
+      .nav-label, .sidebar-footer { display: none; }
+      .search-status { margin-bottom: 4px; }
+      main { padding: 18px; }
+      .hero { padding: 32px 26px; }
+      .doc-section { padding: 26px 22px; }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 620px) {
+      body { font-size: 14px; }
+      main { padding: 10px; }
+      .hero { padding: 26px 20px; border-radius: 15px; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .doc-section { padding: 23px 16px; }
+      .section-head { grid-template-columns: 36px 1fr; gap: 10px; }
+      .section-index { width: 34px; height: 34px; }
+      h2 { font-size: 21px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .journey { grid-template-columns: 1fr 1fr; }
+      .risk { grid-template-columns: 1fr; }
+      .risk-level { width: 54px; }
+      .quick-note { display: block; }
+      .quick-note strong { display: block; margin-bottom: 4px; }
+    }
+    @media print {
+      body { background: #fff; font-size: 11px; }
+      .layout { display: block; }
+      .sidebar, .back-top, .print-button { display: none !important; }
+      main { padding: 0; }
+      .content { max-width: none; }
+      .hero { color: #fff; background: var(--navy) !important; box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .doc-section { padding: 20px 0; border: 0; border-bottom: 1px solid #ccd6d2; box-shadow: none; break-inside: auto; }
+      .card, .flow-steps li, .risk, tr { break-inside: avoid; }
+      details > div { display: block !important; }
+      .table-wrap { overflow: visible; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div><strong>mall-portal</strong><small>Business atlas</small></div>
+      </div>
+      <div class="search-box">
+        <input id="docSearch" type="search" placeholder="搜索接口、业务或源码…" aria-label="搜索文档">
+        <button class="search-clear" id="searchClear" title="清空搜索" aria-label="清空搜索">×</button>
+      </div>
+      <p class="search-status" id="searchStatus">覆盖 13 个控制器 · 65 个接口</p>
+      <div class="nav-label">阅读目录</div>
+      <nav class="nav" aria-label="文档目录">
+        <a href="#overview"><span class="nav-num">01</span>架构与调用约定</a>
+        <a href="#journey"><span class="nav-num">02</span>端到端购物主链路</a>
+        <a href="#member"><span class="nav-num">03</span>会员与认证</a>
+        <a href="#catalog"><span class="nav-num">04</span>首页、商品与品牌</a>
+        <a href="#cart"><span class="nav-num">05</span>购物车与促销</a>
+        <a href="#assets"><span class="nav-num">06</span>地址与优惠券</a>
+        <a href="#order"><span class="nav-num">07</span>确认单与创建订单</a>
+        <a href="#payment"><span class="nav-num">08</span>支付与库存扣减</a>
+        <a href="#lifecycle"><span class="nav-num">09</span>订单履约与取消</a>
+        <a href="#aftersale"><span class="nav-num">10</span>售后与个人资产</a>
+        <a href="#consistency"><span class="nav-num">11</span>一致性与实现边界</a>
+        <a href="#sources"><span class="nav-num">12</span>源码索引</a>
+      </nav>
+      <div class="sidebar-footer">
+        代码基线<br>feature/mybatis-plus-migration · f9caf18<br>静态代码梳理 · 2026-11-15
+        <button class="print-button" id="printButton">打印 / 导出 PDF</button>
+      </div>
+    </aside>
+
+    <main>
+      <div class="content">
+        <header class="hero">
+          <p class="eyebrow">Code-derived documentation / Portal</p>
+          <h1>关键业务接口<br>与交易流程地图</h1>
+          <p class="hero-desc">从会员登录、商品浏览到下单、支付、取消和售后，按真实代码还原接口之间的关系、数据落点、事务边界与异常补偿。</p>
+          <div class="hero-meta">
+            <span>Spring Boot</span><span>Sa-Token</span><span>MyBatis-Plus + 自定义 XML</span><span>MySQL / Redis / MongoDB</span><span>RabbitMQ / 支付宝</span>
+          </div>
+          <div class="metrics">
+            <div class="metric"><strong>13</strong><span>Controller 控制器</span></div>
+            <div class="metric"><strong>65</strong><span>HTTP 接口</span></div>
+            <div class="metric"><strong>9</strong><span>核心业务域</span></div>
+            <div class="metric"><strong>2</strong><span>超时取消保障</span></div>
+          </div>
+        </header>
+        <div class="quick-note">
+          <strong>如何阅读</strong>
+          <span>接口路径默认是 portal 服务内部路径；经网关调用时统一加 <code>/mall-portal</code>。流程描述以当前代码为准，“注意事项”用于区分实际实现与理想业务语义。</span>
+        </div>
+        <div class="empty-search" id="emptySearch">没有匹配的章节。可尝试“订单”“coupon”“Redis”或清空搜索。</div>
+
+        <section class="doc-section searchable" id="overview">
+          <div class="section-head"><div class="section-index">01</div><div><h2>架构与调用约定</h2><p class="section-subtitle">先明确请求入口、认证边界和每类数据的最终落点。</p></div></div>
+          <div class="architecture" aria-label="系统调用架构">
+            <div class="arch-node"><strong>Web / App</strong><span>Bearer Token</span></div><span class="arch-arrow">→</span>
+            <div class="arch-node"><strong>mall-gateway :8201</strong><span>路由 · 白名单 · 鉴权</span></div><span class="arch-arrow">→</span>
+            <div class="arch-node"><strong>mall-portal :8085</strong><span>Controller → Service</span></div><span class="arch-arrow">→</span>
+            <div class="arch-node"><strong>数据与外部服务</strong><span>MySQL · Redis · MongoDB<br>RabbitMQ · Alipay</span></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><span class="card-icon">URL</span><h4>网关路径转换</h4><p><code>/mall-portal/order/list</code> 经 <code>StripPrefix=1</code> 转为 <code>/order/list</code>。直连服务则使用 <code>:8085/order/list</code>。</p></div>
+            <div class="card"><span class="card-icon">AUTH</span><h4>会员身份</h4><p>登录后请求头携带 <code>Authorization: Bearer &lt;token&gt;</code>。除白名单外，网关对 <code>/mall-portal/**</code> 执行会员登录校验。</p></div>
+            <div class="card"><span class="card-icon">JSON</span><h4>统一响应</h4><p>多数接口返回 <code>{code, message, data}</code>。200 成功、500 业务失败、404 参数校验失败、401 未登录、403 无权限；这些是响应体业务码。</p></div>
+          </div>
+          <h3>数据存储分工</h3>
+          <div class="table-wrap"><table><thead><tr><th>存储 / 服务</th><th>承载数据</th><th>关键场景</th></tr></thead><tbody>
+            <tr><td><strong>MySQL</strong></td><td>会员、地址、商品、SKU、优惠券、购物车、订单、退货申请</td><td>交易主数据；MyBatis-Plus 处理单表，复杂联表和原子更新保留在自定义 XML</td></tr>
+            <tr><td><strong>Redis</strong></td><td>会员缓存、验证码、订单号序列、Sa-Token 会话</td><td>缓存读穿、90 秒验证码、每日订单号自增</td></tr>
+            <tr><td><strong>MongoDB</strong></td><td>浏览历史、商品收藏、品牌关注</td><td>Spring Data Repository 分页与按会员删除</td></tr>
+            <tr><td><strong>RabbitMQ</strong></td><td>订单 ID 延迟消息</td><td>TTL 队列到期后死信转发到取消队列</td></tr>
+            <tr><td><strong>支付宝</strong></td><td>支付表单、支付结果、交易查询</td><td>PC/WAP 支付、异步签名回调、主动查单补偿</td></tr>
+          </tbody></table></div>
+          <div class="callout warning"><strong>认证边界以网关为准</strong><p>portal 控制器没有统一的登录拦截器。绕过网关直连 8085 时，不会执行网关的白名单和 <code>StpMemberUtil.checkLogin()</code>；生产部署不应把 portal 直接暴露为公共入口。</p></div>
+          <div class="source">源码：<code>mall-gateway/src/main/resources/application.yml:32-76</code> · <code>mall-gateway/src/main/java/com/macro/mall/config/SaTokenConfig.java:40-53</code> · <code>mall-portal/src/main/resources/application.yml</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="journey">
+          <div class="section-head"><div class="section-index">02</div><div><h2>端到端购物主链路</h2><p class="section-subtitle">前台交易不是单个接口，而是一组跨服务、跨存储的状态推进。</p></div></div>
+          <div class="journey">
+            <div class="journey-step"><b>01 / DISCOVER</b><strong>浏览商品</strong><span>首页聚合、商品搜索、详情与 SKU</span></div>
+            <div class="journey-step"><b>02 / CART</b><strong>加入购物车</strong><span>同会员 + 商品 + SKU 合并数量</span></div>
+            <div class="journey-step"><b>03 / CONFIRM</b><strong>生成确认单</strong><span>促销、地址、可用券、积分与金额</span></div>
+            <div class="journey-step"><b>04 / ORDER</b><strong>提交订单</strong><span>锁库存、占用券、扣积分、写订单</span></div>
+            <div class="journey-step"><b>05 / PAY</b><strong>支付回调</strong><span>待付款 → 待发货；锁库存转实扣</span></div>
+            <div class="journey-step"><b>06 / FULFIL</b><strong>发货与收货</strong><span>后台发货；前台确认已发货订单</span></div>
+            <div class="journey-step"><b>07 / AFTERSALE</b><strong>退货申请</strong><span>创建待处理申请，后续由后台处理</span></div>
+          </div>
+          <h3>订单状态主线</h3>
+          <div class="state-line">
+            <span class="state"><b>0</b> 待付款</span>→<span class="state"><b>1</b> 待发货</span>→<span class="state"><b>2</b> 已发货</span>→<span class="state"><b>3</b> 已完成</span>
+            <span class="muted small">待付款也可进入</span><span class="state"><b>4</b> 已关闭</span><span class="muted small">；模型另定义 5 = 无效订单</span>
+          </div>
+          <div class="grid-2">
+            <div class="callout success"><strong>支付分支</strong><p>只有状态仍为 0 的订单才能改成 1。状态变更成功后，订单明细按 SKU ID 排序，逐个减少真实库存和锁定库存。</p></div>
+            <div class="callout warning"><strong>取消分支</strong><p>只有状态仍为 0 的订单才能改成 4。随后释放锁定库存、返还优惠券和已使用积分；已支付或已取消订单直接跳过。</p></div>
+          </div>
+          <p class="small muted">“后台发货”发生在 <code>mall-admin</code>，不是 portal 接口；此处仅用于说明完整履约链路。portal 提供待发货到已完成之间的用户确认收货动作。</p>
+        </section>
+
+        <section class="doc-section searchable" id="member">
+          <div class="section-head"><div class="section-index">03</div><div><h2>会员与认证</h2><p class="section-subtitle">验证码 → 注册 / 改密 → 登录 → Session + Redis 会员缓存。</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/sso/register</code></td><td><span class="auth public">公开</span></td><td>用户名、密码、手机号、验证码注册</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/sso/login</code></td><td><span class="auth public">公开</span></td><td>BCrypt 校验密码，返回 token 与 tokenHead</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/sso/info</code></td><td><span class="auth member">会员</span></td><td>获取当前会员资料；Redis 未命中时查 MySQL 并回填</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/sso/logout</code></td><td><span class="auth member">会员</span></td><td>删除会员资料缓存并注销当前 Sa-Token 会话</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/sso/getAuthCode</code></td><td><span class="auth public">公开</span></td><td>生成六位数字验证码，写 Redis 并在响应中返回</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/sso/updatePassword</code></td><td><span class="auth member">会员</span></td><td>按手机号和验证码更新 BCrypt 密码，删除会员缓存</td></tr>
+          </tbody></table></div>
+          <div class="grid-2">
+            <div>
+              <h3>注册流程</h3>
+              <ol class="flow-steps">
+                <li><strong>校验验证码</strong><p>读取 <code>mall-swarm:ums:authCode:{telephone}</code> 并比较，失败抛“验证码错误”。</p></li>
+                <li><strong>检查账号唯一性</strong><p>按用户名相同 OR 手机号相同查询，存在则拒绝。</p></li>
+                <li><strong>创建会员</strong><p>BCrypt 加密密码，设置启用状态；有默认等级则关联默认会员等级。</p></li>
+                <li><strong>写入 MySQL</strong><p>插入 <code>ums_member</code>，注册接口本身不自动登录。</p></li>
+              </ol>
+            </div>
+            <div>
+              <h3>登录与当前会员</h3>
+              <ol class="flow-steps">
+                <li><strong>凭据校验</strong><p>依次检查非空、用户存在、密码正确、账号启用。</p></li>
+                <li><strong>建立会话</strong><p><code>StpMemberUtil.login(memberId)</code>，将 UserDto 写入会员 Session。</p></li>
+                <li><strong>返回令牌</strong><p>客户端保存 token，后续以 Bearer 方式放入 Authorization。</p></li>
+                <li><strong>资料读穿缓存</strong><p>Session 提供会员 ID；优先读 Redis，未命中查库并缓存 24 小时。</p></li>
+              </ol>
+            </div>
+          </div>
+          <div class="callout warning"><strong>当前验证码是演示实现</strong><p>没有短信发送、频率限制或验证成功后的删除逻辑；验证码直接返回且 90 秒内可重复使用。<code>/sso/info</code> 返回完整 UmsMember，代码未剔除 password 哈希。</p></div>
+          <div class="source">源码：<code>controller/UmsMemberController.java</code> · <code>service/impl/UmsMemberServiceImpl.java:63-186</code> · <code>service/impl/UmsMemberCacheServiceImpl.java</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="catalog">
+          <div class="section-head"><div class="section-index">04</div><div><h2>首页、商品与品牌</h2><p class="section-subtitle">公开内容查询；portal 商品搜索直接查 MySQL，不走 mall-search / Elasticsearch。</p></div></div>
+          <h3>首页内容</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/home/content</code></td><td><span class="auth public">公开</span></td><td>聚合广告、推荐品牌、秒杀、新品、人气商品、推荐专题</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/home/recommendProductList</code></td><td><span class="auth public">公开</span></td><td>推荐商品；默认 pageNum=1、pageSize=4</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/home/productCateList/{parentId}</code></td><td><span class="auth public">公开</span></td><td>指定父级下可见商品分类</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/home/subjectList</code></td><td><span class="auth public">公开</span></td><td>专题列表；可选 cateId，默认 pageSize=4</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/home/hotProductList</code></td><td><span class="auth public">公开</span></td><td>人气推荐商品；默认 pageSize=6</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/home/newProductList</code></td><td><span class="auth public">公开</span></td><td>新品推荐商品；默认 pageSize=6</td></tr>
+          </tbody></table></div>
+          <p class="small muted"><code>/home/content</code> 是多次 MySQL 查询的聚合：推荐品牌前 6、新品和人气各前 4、推荐专题前 4；秒杀取当前启用活动、当前场次、下一场次和场次商品。当前实现不使用 Redis 首页缓存。</p>
+          <h3>商品搜索与详情</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/product/search</code></td><td><span class="auth public">公开</span></td><td>关键字 / 品牌 / 分类筛选；sort 1 ID 倒序、2 销量、3 价格升序、4 价格倒序</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/product/categoryTreeList</code></td><td><span class="auth public">公开</span></td><td>查询所有分类并按 parentId=0 递归构树</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/product/detail/{id}</code></td><td><span class="auth public">公开</span></td><td>商品、品牌、属性、SKU、促销和可领取优惠券聚合</td></tr>
+          </tbody></table></div>
+          <div class="callout"><strong>商品详情聚合顺序</strong><p>商品主记录 → 品牌 → 属性定义 / 属性值 → SKU → 阶梯价（promotionType=3）或满减（promotionType=4）→ 全场 / 分类 / 指定商品优惠券。搜索固定过滤 deleteStatus=0；<code>sort=0</code> 只是不增加排序，不是相关度评分。pageNum 默认值为 0。</p></div>
+          <h3>品牌</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/brand/recommendList</code></td><td><span class="auth public">公开</span></td><td>推荐品牌分页列表；默认 pageSize=6，仅返回记录列表</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/brand/detail/{brandId}</code></td><td><span class="auth public">公开</span></td><td>按主键查询品牌</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/brand/productList</code></td><td><span class="auth public">公开</span></td><td>未删除且 brandId 匹配的商品分页</td></tr>
+          </tbody></table></div>
+          <div class="source">源码：<code>controller/HomeController.java</code> · <code>controller/PmsPortalProductController.java</code> · <code>controller/PortalBrandController.java</code> · <code>service/impl/HomeServiceImpl.java</code> · <code>service/impl/PmsPortalProductServiceImpl.java</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="cart">
+          <div class="section-head"><div class="section-index">05</div><div><h2>购物车与促销计算</h2><p class="section-subtitle">购物车保存用户选择，价格与优惠在查询促销列表时按最新商品数据重新计算。</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/cart/add</code></td><td><span class="auth member">会员</span></td><td>新增购物车项；同商品 + SKU 已存在时累加数量</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/cart/list</code></td><td><span class="auth member">会员</span></td><td>当前会员未删除购物车项</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/cart/list/promotion</code></td><td><span class="auth member">会员</span></td><td>购物车 + 最新促销 + 可用库存；可选 cartIds</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/cart/update/quantity</code></td><td><span class="auth member">会员</span></td><td>按 id + memberId 修改数量，要求 quantity &gt; 0</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/cart/getProduct/{productId}</code></td><td><span class="auth member">会员</span></td><td>获取商品和 SKU，供重选规格</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/cart/update/attr</code></td><td><span class="auth member">会员</span></td><td>软删旧项，再按新规格执行 add / 合并</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/cart/delete</code></td><td><span class="auth member">会员</span></td><td>按 ids + memberId 批量软删</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/cart/clear</code></td><td><span class="auth member">会员</span></td><td>软删当前会员全部购物车项</td></tr>
+          </tbody></table></div>
+          <div class="grid-2">
+            <div>
+              <h3>加入购物车</h3>
+              <ol class="flow-steps">
+                <li><strong>校验数量</strong><p>数量为空或小于等于 0 时直接拒绝。</p></li>
+                <li><strong>绑定当前会员</strong><p>服务端覆盖 memberId、memberNickname 和 deleteStatus。</p></li>
+                <li><strong>查找已有项</strong><p>条件为当前会员、商品 ID、未删除；SKU ID 非空时追加 SKU 条件。</p></li>
+                <li><strong>新增或合并</strong><p>不存在则插入；存在则累加数量并更新修改时间。</p></li>
+              </ol>
+            </div>
+            <div>
+              <h3>促销计算</h3>
+              <ol class="flow-steps">
+                <li><strong>限定数据范围</strong><p>先取当前会员购物车；cartIds 非空时仅保留选中项。</p></li>
+                <li><strong>按 SPU 分组</strong><p>阶梯折扣数量与满减金额以同一 productId 下的购物车项汇总。</p></li>
+                <li><strong>加载商品最新数据</strong><p>批量查询 SKU、原价、促销价、优惠规则和赠送积分 / 成长值。</p></li>
+                <li><strong>返回促销视图</strong><p>计算 price、reduceAmount、promotionMessage、realStock。</p></li>
+              </ol>
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><span class="card-icon">TYPE 1</span><h4>单品促销</h4><p>price 取 SKU 原价，reduceAmount = 原价 − 促销价。</p></div>
+            <div class="card"><span class="card-icon">TYPE 3</span><h4>阶梯折扣</h4><p>按 SPU 总件数匹配最高满足档位，原价 × 折扣。</p></div>
+            <div class="card"><span class="card-icon">TYPE 4</span><h4>满减</h4><p>按 SPU 原价总额匹配最高满足档位，再分摊到购物车项。</p></div>
+          </div>
+          <div class="callout warning"><strong>两个容易误读的参数行为</strong><p><code>cartIds=null</code> 或空列表表示使用当前会员整个购物车；只有非空列表才做筛选。购物车只是展示与下单输入，不在加购时锁库存。</p></div>
+          <div class="source">源码：<code>controller/OmsCartItemController.java</code> · <code>service/impl/OmsCartItemServiceImpl.java</code> · <code>service/impl/OmsPromotionServiceImpl.java</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="assets">
+          <div class="section-head"><div class="section-index">06</div><div><h2>地址与优惠券</h2><p class="section-subtitle">确认单的前置资产：收货信息和可抵扣权益。</p></div></div>
+          <h3>收货地址</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/address/add</code></td><td><span class="auth member">会员</span></td><td>新增地址，服务端覆盖为当前 memberId</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/address/delete/{id}</code></td><td><span class="auth member">会员</span></td><td>按当前 memberId + id 删除</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/address/update/{id}</code></td><td><span class="auth member">会员</span></td><td>更新当前会员地址的非空字段；可重设默认地址</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/address/list</code></td><td><span class="auth member">会员</span></td><td>当前会员地址列表</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/address/{id}</code></td><td><span class="auth member">会员</span></td><td>当前 memberId + id 查询地址详情</td></tr>
+          </tbody></table></div>
+          <p class="small muted">设置 <code>defaultStatus=1</code> 时，先把当前会员旧默认地址全部改为非默认，再更新目标地址。下单最终读取地址记录并把收货人信息快照到订单。</p>
+          <h3>优惠券</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/coupon/add/{couponId}</code></td><td><span class="auth member">会员</span></td><td>主动领取；检查库存、领取时间和每人限领次数</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/coupon/listHistory</code></td><td><span class="auth member">会员</span></td><td>领取历史；按历史表存储的 useStatus 筛选</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/coupon/list</code></td><td><span class="auth member">会员</span></td><td>会员优惠券；0 未使用、1 已使用、2 当前已过结束时间</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/coupon/list/cart/{type}</code></td><td><span class="auth member">会员</span></td><td>按整个购物车划分可用券（type=1）与不可用券</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/coupon/listByProduct/{productId}</code></td><td><span class="auth member">会员</span></td><td>商品相关全场券、分类券与指定商品券</td></tr>
+          </tbody></table></div>
+          <ol class="flow-steps">
+            <li><strong>读取券模板</strong><p>券不存在、库存不足或当前时间早于 enableTime 时拒绝领取。</p></li>
+            <li><strong>检查个人限领</strong><p>统计当前会员领取历史，达到 perLimit 时拒绝。</p></li>
+            <li><strong>生成领取记录</strong><p>生成券码，插入 <code>sms_coupon_history</code>，getType=1、useStatus=0。</p></li>
+            <li><strong>更新券模板计数</strong><p>剩余数量 count − 1，领取数量 receiveCount + 1。</p></li>
+            <li><strong>购物车时重新判定</strong><p>读取未使用券，关联券模板与商品 / 分类关系，按促销后金额、门槛和结束时间分组。</p></li>
+          </ol>
+          <div class="callout"><strong>下单如何使用券</strong><p><code>generateOrder</code> 不接受“任意 couponId 即生效”：会基于本次购物车重新计算可用券并匹配 ID；写订单后以 <code>memberId + couponId + 原状态</code> 原子占用，状态已被修改则整单回滚。</p></div>
+          <div class="source">源码：<code>controller/UmsMemberReceiveAddressController.java</code> · <code>service/impl/UmsMemberReceiveAddressServiceImpl.java</code> · <code>service/impl/UmsMemberCouponServiceImpl.java</code> · <code>resources/dao/SmsCouponHistoryDao.xml</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="order">
+          <div class="section-head"><div class="section-index">07</div><div><h2>确认单与创建订单</h2><p class="section-subtitle">交易核心：所有价格、优惠、积分和库存均以服务端本次计算为准。</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/generateConfirmOrder</code></td><td><span class="auth member">会员</span></td><td>请求体为购物车 ID 数组，返回促销商品、地址、可用券、积分规则和金额</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/generateOrder</code></td><td><span class="auth member">会员</span></td><td>创建待付款订单并返回 order + orderItemList</td></tr>
+          </tbody></table></div>
+          <h3>确认单：聚合但不占用资源</h3>
+          <div class="architecture">
+            <div class="arch-node"><strong>选中购物车</strong><span>最新促销 / 库存视图</span></div><span class="arch-arrow">+</span>
+            <div class="arch-node"><strong>会员资产</strong><span>地址 / 可用券 / 积分</span></div><span class="arch-arrow">+</span>
+            <div class="arch-node"><strong>积分规则</strong><span>本地缓存，60 秒延迟刷新</span></div><span class="arch-arrow">→</span>
+            <div class="arch-node"><strong>ConfirmOrderResult</strong><span>展示金额，不落订单</span></div>
+          </div>
+          <p class="small muted">确认单金额 = 商品原价总额 − 活动优惠；此阶段尚未扣减优惠券和积分，也不锁库存。提交订单时会重新计算，不能把确认单金额视为最终支付依据。</p>
+          <h3>创建订单请求</h3>
+          <pre><code>POST /mall-portal/order/generateOrder
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "memberReceiveAddressId": 12,
+  "couponId": 34,
+  "useIntegration": 100,
+  "payType": 1,
+  "cartIds": [56, 57]
+}</code></pre>
+          <p class="small muted"><code>couponId</code>、<code>useIntegration</code> 可空；payType：1 支付宝、2 微信。收货地址 ID 必填。</p>
+          <h3>事务内的执行顺序</h3>
+          <ol class="flow-steps">
+            <li><strong>读取本次购物车与促销</strong><p>按当前会员和 cartIds 获取最新数据；拒绝数量为空或小于等于 0 的购物车项。</p></li>
+            <li><strong>构造订单商品快照</strong><p>复制商品、SKU、价格、数量、促销和赠送积分 / 成长值。</p></li>
+            <li><strong>预检可用库存</strong><p>检查 <code>stock − lockStock ≥ quantity</code>；预检不是最终并发保障。</p></li>
+            <li><strong>计算优惠券</strong><p>重新验证可用性，按全场 / 分类 / 商品范围及商品价格占比分摊。</p></li>
+            <li><strong>计算积分抵扣</strong><p>校验会员积分、使用门槛、能否与券共用、单笔最高抵扣比例并分摊。</p></li>
+            <li><strong>原子锁定库存</strong><p>购物车项按 SKU ID 排序，逐个执行条件 UPDATE；任一失败即抛异常。</p></li>
+            <li><strong>计算订单金额与快照</strong><p>计算总额、促销、券、积分和应付金额；读取地址，生成 Redis 每日自增订单号。</p></li>
+            <li><strong>写入订单主从表</strong><p>插入 <code>oms_order</code>（status=0），再批量插入 <code>oms_order_item</code>。</p></li>
+            <li><strong>占用资产并清购物车</strong><p>原子占用券、条件扣减积分；失败回滚。成功后软删本次购物车项。</p></li>
+            <li><strong>注册提交后动作</strong><p>事务提交后发送延迟取消消息；发送异常记录日志，由定时扫描兜底。</p></li>
+          </ol>
+          <div class="callout success"><strong>事务边界</strong><p><code>OmsPortalOrderServiceImpl.generateOrder</code> 使用 <code>@Transactional(rollbackFor = Exception.class)</code>。库存锁定、订单写入、券占用、积分扣减和购物车删除处于同一本地数据库事务中；Redis 订单号递增和 RabbitMQ 不属于该本地事务。</p></div>
+          <div class="grid-2">
+            <div class="card"><h4>库存锁定条件</h4><pre><code>UPDATE pms_sku_stock
+SET lock_stock = lock_stock + #{quantity}
+WHERE id = #{skuId}
+  AND stock - lock_stock &gt;= #{quantity}</code></pre></div>
+            <div class="card"><h4>订单应付金额</h4><p>商品总额 + 运费 − 活动优惠 − 优惠券 − 积分抵扣。</p><p>当前运费固定为 0；优惠按商品分摊，订单金额由订单项汇总。</p><p>SKU 按固定顺序加锁，用于降低多商品订单交叉加锁导致死锁的概率。</p></div>
+          </div>
+          <div class="callout warning"><strong>空选集不是显式拒绝</strong><p>cartIds 为空列表会按“整个购物车”处理；如果非空 ID 列表筛不到任何购物车项，当前代码没有“订单项不能为空”的显式校验。调用方应确保选中项有效，后续治理建议在服务端补齐该校验。</p></div>
+          <div class="source">源码：<code>controller/OmsPortalOrderController.java:42-56</code> · <code>service/impl/OmsPortalOrderServiceImpl.java:104-291</code> · <code>service/impl/OmsPortalOrderServiceImpl.java:780-809</code> · <code>resources/dao/PortalOrderDao.xml:50-55</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="payment">
+          <div class="section-head"><div class="section-index">08</div><div><h2>支付与库存扣减</h2><p class="section-subtitle">支付发起、异步通知、主动查单和演示支付最终都收敛到订单支付成功逻辑。</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/alipay/pay</code></td><td><span class="auth public">公开</span></td><td>PC 网站支付，返回支付宝表单 HTML</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/alipay/webPay</code></td><td><span class="auth public">公开</span></td><td>手机网站支付，返回支付宝表单 HTML</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/alipay/notify</code></td><td><span class="auth public">公开</span></td><td>支付宝异步回调；验签、验金额后推进订单</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/alipay/query</code></td><td><span class="auth public">公开</span></td><td>主动查询交易；TRADE_SUCCESS 时推进订单</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/paySuccess</code></td><td><span class="auth member">会员</span></td><td>模拟支付；默认关闭，开启时校验订单归属</td></tr>
+          </tbody></table></div>
+          <h3>发起支付</h3>
+          <ol class="flow-steps">
+            <li><strong>按 outTradeNo 查询订单</strong><p>订单号不能为空、订单必须存在且 status=0。</p></li>
+            <li><strong>服务端确定金额</strong><p><code>total_amount</code> 使用数据库 <code>order.payAmount</code>，客户端 AliPayParam.totalAmount 不参与支付金额。</p></li>
+            <li><strong>创建支付宝请求</strong><p>PC 使用 FAST_INSTANT_TRADE_PAY，WAP 使用 QUICK_WAP_WAY；设置异步 notifyUrl 和同步 returnUrl。</p></li>
+            <li><strong>返回表单 HTML</strong><p>浏览器提交表单后在支付宝侧完成支付；同步跳转不是最终入账依据。</p></li>
+          </ol>
+          <h3>异步回调与支付成功</h3>
+          <div class="architecture">
+            <div class="arch-node"><strong>支付宝通知</strong><span>trade_status=TRADE_SUCCESS</span></div><span class="arch-arrow">→</span>
+            <div class="arch-node"><strong>安全校验</strong><span>SDK 验签 + 回调金额 = 应付金额</span></div><span class="arch-arrow">→</span>
+            <div class="arch-node"><strong>条件更新订单</strong><span>WHERE id=? AND status=0</span></div><span class="arch-arrow">→</span>
+            <div class="arch-node"><strong>库存实扣</strong><span>stock − qty<br>lock_stock − qty</span></div>
+          </div>
+          <div class="grid-2">
+            <div class="callout success"><strong>重复通知 / 支付取消竞态</strong><p>订单从 0 → 1 的条件更新是状态闸门。影响行数为 0 表示已支付或已取消，抛“订单状态已变更”，不会继续重复扣库存。</p></div>
+            <div class="callout warning"><strong>事务与支付宝重试</strong><p><code>paySuccess</code> 内任一 SKU 实扣失败都会回滚订单状态和本事务内已扣库存。异步回调处理成功返回 success，失败返回 failure 或抛异常，供支付宝重试。</p></div>
+          </div>
+          <h3>模拟支付开关</h3>
+          <p><code>mall.order.mock-pay-enabled</code> 默认 <code>false</code>。关闭时 <code>/order/paySuccess</code> 直接失败；仅在本地 / 测试环境显式开启。开启后仍校验订单属于当前会员，然后复用相同支付成功与库存扣减逻辑。</p>
+          <div class="source">源码：<code>controller/AlipayController.java</code> · <code>service/impl/AlipayServiceImpl.java</code> · <code>service/impl/OmsPortalOrderServiceImpl.java:293-314,488-499</code> · <code>resources/dao/PortalOrderDao.xml:56-80</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="lifecycle">
+          <div class="section-head"><div class="section-index">09</div><div><h2>订单履约、查询与取消</h2><p class="section-subtitle">用户动作改变订单状态，延迟消息与定时任务共同处理未支付订单。</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/cancelTimeOutOrder</code></td><td><span class="auth member">会员</span></td><td>手动触发批量取消全部超时未支付订单</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/cancelOrder</code></td><td><span class="auth member">会员</span></td><td>发送该订单的延迟取消消息，不是立即取消</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/order/list</code></td><td><span class="auth member">会员</span></td><td>当前会员订单分页；status=-1 全部，默认 pageSize=5</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/order/detail/{orderId}</code></td><td><span class="auth member">会员</span></td><td>订单主记录 + 订单商品明细</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/cancelUserOrder</code></td><td><span class="auth member">会员</span></td><td>立即取消待付款订单并返还库存、券和积分</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/confirmReceiveOrder</code></td><td><span class="auth member">会员</span></td><td>本人已发货订单 2 → 3，记录收货时间</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/order/deleteOrder</code></td><td><span class="auth member">会员</span></td><td>本人已完成或已关闭订单设置 deleteStatus=1</td></tr>
+          </tbody></table></div>
+          <h3>超时取消双通道</h3>
+          <div class="grid-2">
+            <div class="card"><span class="card-icon">MQ</span><h4>主通道：延迟消息</h4><p>下单事务提交后，向 <code>mall.order.cancel.ttl</code> 发送带 expiration 的订单 ID。TTL 到期后死信转发至 <code>mall.order.cancel</code>，消费者调用 cancelOrder。</p></div>
+            <div class="card"><span class="card-icon">CRON</span><h4>兜底：每 10 分钟扫描</h4><p><code>0 0/10 * ? * ?</code> 查询创建时间超过 normalOrderOvertime 的待付款订单，逐单执行取消，覆盖消息未发送、未到达或未被消费的情况。</p></div>
+          </div>
+          <ol class="flow-steps">
+            <li><strong>尝试关闭订单</strong><p><code>UPDATE oms_order SET status=4 WHERE id=? AND status=0</code>；影响行数为 0 直接结束。</p></li>
+            <li><strong>释放 SKU 锁定库存</strong><p>明细按 SKU ID 排序，<code>lock_stock = lock_stock − quantity</code>，不再减少真实 stock。</p></li>
+            <li><strong>返还优惠券</strong><p>仅当券当前为已使用状态时改回未使用，避免重复返还或覆盖其他状态。</p></li>
+            <li><strong>返还积分</strong><p>订单存在 useIntegration 时加回当前会员账户。</p></li>
+          </ol>
+          <h3>订单列表组装</h3>
+          <p>按当前会员、deleteStatus=0 和可选 status 分页查询主表，按创建时间倒序；再用本页订单 ID 批量查询明细并在内存中分组，避免逐订单查询。发货由后台推进到 status=2，portal 确认收货时校验订单归属和状态。</p>
+          <div class="source">源码：<code>controller/OmsPortalOrderController.java:75-133</code> · <code>service/impl/OmsPortalOrderServiceImpl.java:316-486</code> · <code>component/CancelOrderSender.java</code> · <code>component/CancelOrderReceiver.java</code> · <code>component/OrderTimeOutCancelTask.java</code> · <code>config/RabbitMqConfig.java</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="aftersale">
+          <div class="section-head"><div class="section-index">10</div><div><h2>售后与个人资产</h2><p class="section-subtitle">退货申请写 MySQL；收藏、关注和浏览历史写 MongoDB。</p></div></div>
+          <h3>退货申请</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/returnApply/create</code></td><td><span class="auth member">会员</span></td><td>创建 status=0 的待处理退货申请</td></tr>
+          </tbody></table></div>
+          <p>请求体 <code>OmsOrderReturnApplyParam</code> 携带订单、商品、数量、价格、原因和凭证等快照；服务复制字段，覆盖服务器创建时间和 status=0 后插入 <code>oms_order_return_apply</code>。后续审核、退款和退货入库不属于 portal 当前接口。</p>
+          <h3>浏览历史</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/readHistory/create</code></td><td><span class="auth member">会员</span></td><td>新增记录；覆盖会员信息、清空文档 ID、使用服务器时间</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/readHistory/delete</code></td><td><span class="auth member">会员</span></td><td>按 Mongo 文档 ids 批量删除</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/readHistory/clear</code></td><td><span class="auth member">会员</span></td><td>删除当前会员全部浏览历史</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/readHistory/list</code></td><td><span class="auth member">会员</span></td><td>当前会员记录按创建时间倒序分页；默认 pageSize=5</td></tr>
+          </tbody></table></div>
+          <h3>商品收藏与品牌关注</h3>
+          <div class="table-wrap"><table><thead><tr><th>方法</th><th>接口</th><th>访问</th><th>业务说明</th></tr></thead><tbody>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/productCollection/add</code></td><td><span class="auth member">会员</span></td><td>不存在当前会员 + productId 记录时新增收藏</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/productCollection/delete</code></td><td><span class="auth member">会员</span></td><td>按当前会员 + productId 取消收藏</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/productCollection/list</code></td><td><span class="auth member">会员</span></td><td>当前会员收藏分页；默认 pageSize=5</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/productCollection/detail</code></td><td><span class="auth member">会员</span></td><td>当前会员 + productId 查询收藏详情</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/productCollection/clear</code></td><td><span class="auth member">会员</span></td><td>清空当前会员商品收藏</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/attention/add</code></td><td><span class="auth member">会员</span></td><td>不存在当前会员 + brandId 记录时新增关注</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/attention/delete</code></td><td><span class="auth member">会员</span></td><td>按当前会员 + brandId 取消关注</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/attention/list</code></td><td><span class="auth member">会员</span></td><td>当前会员品牌关注分页；默认 pageSize=5</td></tr>
+            <tr class="api-row"><td><span class="method get">GET</span></td><td class="path"><code>/member/attention/detail</code></td><td><span class="auth member">会员</span></td><td>当前会员 + brandId 查询关注详情</td></tr>
+            <tr class="api-row"><td><span class="method post">POST</span></td><td class="path"><code>/member/attention/clear</code></td><td><span class="auth member">会员</span></td><td>清空当前会员品牌关注</td></tr>
+          </tbody></table></div>
+          <div class="callout"><strong>快照来自哪里</strong><p>三类新增接口都会绑定当前会员身份，但商品名、价格、图片、品牌名等业务快照主要来自请求体，不会回查 MySQL 核实。收藏和关注采用“先查不存在再插入”；重复添加返回 0，控制器返回通用失败。</p></div>
+          <div class="source">源码：<code>service/impl/OmsPortalOrderReturnApplyServiceImpl.java</code> · <code>service/impl/MemberReadHistoryServiceImpl.java</code> · <code>service/impl/MemberCollectionServiceImpl.java</code> · <code>service/impl/MemberAttentionServiceImpl.java</code></div>
+        </section>
+
+        <section class="doc-section searchable" id="consistency">
+          <div class="section-head"><div class="section-index">11</div><div><h2>一致性与实现边界</h2><p class="section-subtitle">理解现有保护，也识别尚未封闭的业务入口；以下为静态代码结论。</p></div></div>
+          <h3>已经具备的关键保护</h3>
+          <div class="grid-3">
+            <div class="card"><span class="card-icon">DB</span><h4>条件更新防超卖</h4><p>库存锁定 SQL 自带可用库存条件，影响行数决定成败；多 SKU 固定顺序加锁。</p></div>
+            <div class="card"><span class="card-icon">TX</span><h4>本地事务回滚</h4><p>下单、支付成功、取消订单的数据库写操作有事务边界。</p></div>
+            <div class="card"><span class="card-icon">CAS</span><h4>状态闸门</h4><p>支付与取消都要求订单仍为待付款；券占用和积分扣减也使用条件 UPDATE。</p></div>
+            <div class="card"><span class="card-icon">PAY</span><h4>服务端金额</h4><p>支付表单金额取订单；回调同时校验签名和金额。</p></div>
+            <div class="card"><span class="card-icon">MQ</span><h4>提交后发送</h4><p>延迟消息在事务提交后发送，并有发布确认、退回日志。</p></div>
+            <div class="card"><span class="card-icon">JOB</span><h4>定时任务兜底</h4><p>消息失效时仍可扫描并取消超时订单，避免库存长期锁定。</p></div>
+          </div>
+          <h3>阅读和后续治理时应重点关注</h3>
+          <div class="risk-list">
+            <div class="risk"><span class="risk-level">归属</span><div><strong>部分订单与支付入口未校验会员归属</strong><p><code>/order/detail/{orderId}</code>、<code>/order/cancelUserOrder</code>、<code>/order/cancelOrder</code> 的当前服务路径没有当前会员条件；支付宝 pay / webPay / query 还在网关公开白名单中。模拟支付和确认收货已有归属校验，可对照理解。</p></div></div>
+            <div class="risk"><span class="risk-level">售后</span><div><strong>退货申请信任客户端订单和商品快照</strong><p>未查询订单归属、订单商品、数量价格或重复申请；memberUsername 也来自请求体。</p></div></div>
+            <div class="risk"><span class="risk-level">并发</span><div><strong>优惠券领取不是原子流程</strong><p>“查库存 / 限领 → 插历史 → 更新模板计数”没有事务和条件库存更新，存在并发超领及部分写入风险。这里的保护不同于下单时的券状态原子占用。</p></div></div>
+            <div class="risk"><span class="risk-level">事务</span><div><strong>部分多步写入缺少事务与归属条件</strong><p>购物车规格修改先按 ID 软删旧项再新增，方法无事务且旧项更新未限定会员；默认地址切换也是两次独立写操作。浏览历史按 Mongo ID 批量删除未限定当前会员。</p></div></div>
+            <div class="risk"><span class="risk-level">输入</span><div><strong>公开商品查询的可见性与空值处理不统一</strong><p>商品搜索和品牌商品列表只过滤删除状态、未统一过滤上架状态；商品详情未显式处理商品不存在。多个请求体未使用 @Valid，空选集、分页边界等依赖运行时或数据库行为。</p></div></div>
+            <div class="risk"><span class="risk-level">缓存</span><div><strong>会员与订单配置存在缓存语义</strong><p>会员资料缓存 24 小时，依赖显式删除保持刷新；订单设置和积分规则通过 volatile 引用本地缓存，每 60 秒 fixedDelay 刷新，多实例不会实时同步。</p></div></div>
+          </div>
+          <div class="callout warning"><strong>文档性质</strong><p>本节用于帮助阅读当前实现，不代表本次已修改这些问题，也不替代真实数据库、消息队列、支付宝回调和并发场景测试。</p></div>
+        </section>
+
+        <section class="doc-section searchable" id="sources">
+          <div class="section-head"><div class="section-index">12</div><div><h2>源码索引</h2><p class="section-subtitle">按业务问题快速回到实现位置。</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>主题</th><th>主要源码</th></tr></thead><tbody>
+            <tr><td>接口入口</td><td><code>mall-portal/src/main/java/com/macro/mall/portal/controller/</code></td></tr>
+            <tr><td>下单、支付状态、取消、收货</td><td><code>service/impl/OmsPortalOrderServiceImpl.java</code></td></tr>
+            <tr><td>购物车与促销</td><td><code>service/impl/OmsCartItemServiceImpl.java</code><br><code>service/impl/OmsPromotionServiceImpl.java</code></td></tr>
+            <tr><td>支付宝</td><td><code>service/impl/AlipayServiceImpl.java</code><br><code>config/AlipayConfig.java</code></td></tr>
+            <tr><td>原子库存与订单 SQL</td><td><code>mall-portal/src/main/resources/dao/PortalOrderDao.xml</code></td></tr>
+            <tr><td>优惠券计算与占用</td><td><code>service/impl/UmsMemberCouponServiceImpl.java</code><br><code>mall-portal/src/main/resources/dao/SmsCouponHistoryDao.xml</code></td></tr>
+            <tr><td>延迟取消</td><td><code>component/CancelOrderSender.java</code> · <code>CancelOrderReceiver.java</code><br><code>component/OrderTimeOutCancelTask.java</code> · <code>config/RabbitMqConfig.java</code></td></tr>
+            <tr><td>会员缓存与认证</td><td><code>service/impl/UmsMemberServiceImpl.java</code> · <code>UmsMemberCacheServiceImpl.java</code><br><code>mall-gateway/src/main/java/com/macro/mall/config/SaTokenConfig.java</code></td></tr>
+            <tr><td>运行配置</td><td><code>mall-portal/src/main/resources/application.yml</code><br><code>mall-gateway/src/main/resources/application.yml</code></td></tr>
+          </tbody></table></div>
+          <h3>建议的联调顺序</h3>
+          <ol class="checklist">
+            <li>注册 / 登录，验证 Authorization 请求头和网关白名单。</li>
+            <li>准备上架商品、SKU 库存、地址、优惠券和会员积分。</li>
+            <li>加购并生成确认单，核对促销、券、积分和金额。</li>
+            <li>创建订单，核对订单主从表、锁定库存、券状态、积分和购物车。</li>
+            <li>分别验证支付成功、重复回调、用户取消、MQ 超时取消和定时扫描兜底。</li>
+            <li>后台发货后确认收货，最后验证退货申请与 Mongo 个人资产。</li>
+          </ol>
+          <div class="callout success"><strong>基线说明</strong><p>本文基于 <code>feature/mybatis-plus-migration</code> 分支 <code>f9caf18</code> 静态梳理，覆盖 13 个控制器中的 65 个 HTTP 接口。页面无外部资源依赖，可离线打开；打印样式可用于导出 PDF。</p></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <button class="back-top" id="backTop" title="返回顶部" aria-label="返回顶部">↑</button>
+  <script>
+    const searchInput = document.getElementById('docSearch');
+    const searchStatus = document.getElementById('searchStatus');
+    const sections = Array.from(document.querySelectorAll('.searchable'));
+    const emptySearch = document.getElementById('emptySearch');
+    const defaultStatus = '覆盖 13 个控制器 · 65 个接口';
+
+    function filterDocument() {
+      const query = searchInput.value.trim().toLocaleLowerCase();
+      let visibleCount = 0;
+      sections.forEach(section => {
+        const matched = !query || section.textContent.toLocaleLowerCase().includes(query);
+        section.hidden = !matched;
+        if (matched) visibleCount += 1;
+      });
+      emptySearch.style.display = visibleCount ? 'none' : 'block';
+      searchStatus.textContent = query ? `找到 ${visibleCount} 个相关章节` : defaultStatus;
+    }
+
+    searchInput.addEventListener('input', filterDocument);
+    document.getElementById('searchClear').addEventListener('click', () => {
+      searchInput.value = '';
+      filterDocument();
+      searchInput.focus();
+    });
+    document.getElementById('printButton').addEventListener('click', () => {
+      searchInput.value = '';
+      filterDocument();
+      window.print();
+    });
+
+    const navLinks = Array.from(document.querySelectorAll('.nav a'));
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${entry.target.id}`));
+        }
+      });
+    }, { rootMargin: '-15% 0px -72% 0px' });
+    sections.forEach(section => observer.observe(section));
+
+    const backTop = document.getElementById('backTop');
+    window.addEventListener('scroll', () => backTop.classList.toggle('visible', window.scrollY > 700), { passive: true });
+    backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  </script>
+</body>
+</html>
